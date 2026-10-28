@@ -1,0 +1,7 @@
+.venv/
+datos/
+tests/
+__pycache__/
+**/__pycache__/
+datos-sucios/
+datos-vivo/

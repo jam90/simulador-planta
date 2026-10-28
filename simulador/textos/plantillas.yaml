@@ -1,0 +1,70 @@
+# Frases para generar textos en lenguaje natural a partir de los eventos simulados.
+# Cada clave tiene varias alternativas; se elige una al azar (con la semilla).
+# Los huecos {entre_llaves} los rellena el generador.
+
+parte:
+  cuerpo:
+    - "El {fecha} a las {hora_inicio} se para {equipo} ({equipo_desc}) por {descripcion} (código {codigo}). {accion_frase}. El equipo vuelve a estar disponible a las {hora_fin}, tras {duracion} minutos de parada."
+    - "{equipo_desc_cap} ({equipo}) en avería desde las {hora_inicio} del {fecha}: {descripcion}, alarma {codigo}. Actuación: {accion}. Duración total de la parada: {duracion} min."
+    - "Aviso a mantenimiento por la alarma {codigo} en {equipo} a las {hora_inicio} del {fecha}. Diagnóstico: {descripcion}. Se realiza: {accion}. Fin de la intervención a las {hora_fin} ({duracion} min)."
+  observaciones:
+    E-260:
+      - "En los días anteriores la corriente del eje {eje} venía subiendo poco a poco; conviene vigilar esta variable."
+      - "El operario comenta que el robot llevaba unos días algo más lento y con el motor del eje {eje} más caliente de lo normal."
+    E-351:
+      - "La pieza que se estaba mecanizando se retira como defectuosa."
+      - "Se revisa el amarre de la pieza y no se encuentran holguras."
+    E-214:
+      - "Se limpia también el conector del sensor, que tenía restos de aceite."
+    E-245:
+      - "La boquilla tenía bastante proyección de soldadura acumulada."
+      - "Se revisa también la limpieza automática de la antorcha, que funciona bien."
+    E-340:
+      - "El filtro del circuito de refrigeración estaba bastante sucio."
+    general:
+      - "Se prueba el equipo en vacío antes de devolverlo a producción."
+      - "Sin más incidencias."
+      - "Se recomienda revisarlo en el próximo mantenimiento preventivo."
+      - ""
+
+nota_turno:
+  apertura:
+    - "Nota del turno de {turno} del {fecha} (línea {linea})."
+    - "Resumen del turno de {turno}, {fecha}, línea {linea}."
+  produccion:
+    - "Se han fabricado {ok} piezas buenas y {nok} defectuosas ({pct_nok} % de rechazo)."
+    - "Producción: {ok} piezas OK y {nok} NOK, un {pct_nok} % de rechazo."
+  sin_produccion:
+    - "No se ha fabricado ninguna pieza."
+  referencias_una:
+    - "Todo el turno con la referencia {refs}."
+    - "Referencia en fabricación: {refs}."
+  referencias_varias:
+    - "Se ha trabajado con las referencias {refs}."
+    - "Hubo cambio de formato; referencias fabricadas: {refs}."
+  sin_averias:
+    - "Turno sin averías."
+    - "No ha habido averías."
+  averias:
+    - "Averías: {lista}."
+    - "Se registraron estas averías: {lista}."
+  microparadas:
+    - "Hubo {n_txt} que sumaron unos {minutos} minutos; la causa más repetida, «{top}»."
+    - "Microparadas: {n} (unos {minutos} min en total). La causa más frecuente fue «{top}»."
+  sin_microparadas:
+    - "Sin microparadas reseñables."
+  herramientas:
+    - "En la CNC se cambió la herramienta por desgaste {veces}."
+    - "Cambios de herramienta en la CNC: {n}."
+  energia:
+    - "Consumo eléctrico de la planta: {kwh} kWh ({kwh_pieza} kWh por pieza buena); la fotovoltaica generó {fv} kWh."
+    - "La planta consumió {kwh} kWh durante el turno, de los que {fv} kWh salieron de la fotovoltaica. Salen {kwh_pieza} kWh por pieza buena."
+  presion_baja:
+    - "Saltó la alarma de presión baja en la red de aire comprimido; revisar posibles fugas."
+  exceso_potencia:
+    - "Se superó la potencia contratada en {cuartos}."
+    - "El contador general marcó exceso de potencia en {cuartos}."
+  cierre:
+    - ""
+    - "Sin otras novedades."
+    - "La línea queda preparada para el siguiente turno."

@@ -1,0 +1,7 @@
+.venv/
+datos/
+__pycache__/
+.pytest_cache/
+datos-sucios/
+datos-vivo/
+CLAUDE.md

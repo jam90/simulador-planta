@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de planta</title>
+<style>
+  :root {
+    --fondo: #f4f5f7; --panel: #ffffff; --texto: #1d2330; --suave: #5f6b7a; --borde: #dde1e7;
+    --acento: #2563eb; --ok: #15803d; --aviso: #b45309; --error: #b91c1c; --neutro: #64748b;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #12151b; --panel: #1b2029; --texto: #e5e9f0; --suave: #9aa5b4; --borde: #2c3340;
+      --acento: #60a5fa; --ok: #4ade80; --aviso: #fbbf24; --error: #f87171; --neutro: #94a3b8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: var(--fondo); color: var(--texto); }
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+           padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--borde); }
+  header h1 { font-size: 17px; margin: 0 12px 0 0; }
+  .dato { display: flex; flex-direction: column; }
+  .dato small { color: var(--suave); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .dato b { font-family: var(--mono); font-weight: 600; }
+  main { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.3fr);
+         gap: 16px; padding: 16px 20px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 12px 16px; } }
+  @media (max-width: 600px) { .col-tipo { display: none; } header { padding: 12px 16px; } }
+  section { background: var(--panel); border: 1px solid var(--borde); border-radius: 8px; padding: 14px 16px; }
+  section h2 { font-size: 14px; margin: 0 0 10px; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 5px 6px; border-bottom: 1px solid var(--borde); text-align: left; vertical-align: middle; }
+  th { color: var(--suave); font-weight: 500; font-size: 12px; }
+  tr.sel { background: color-mix(in srgb, var(--acento) 12%, transparent); }
+  tr[data-id] { cursor: pointer; }
+  .estado { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600;
+            font-family: var(--mono); border: 1px solid currentColor; color: var(--neutro); }
+  .e-PRODUCCION, .e-OK, .e-CARGA, .e-PRODUCIENDO, .e-ENCENDIDA { color: var(--ok); }
+  .e-MICROPARADA, .e-CAMBIO_FORMATO, .e-ARRANQUE, .e-ESPERA, .e-MANTENIMIENTO { color: var(--aviso); }
+  .e-AVERIA, .e-FALLO { color: var(--error); }
+  .fila { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  button, select, input[type=number] { font: inherit; padding: 5px 10px; border-radius: 6px;
+           border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--acento); }
+  button.primario { background: var(--acento); border-color: var(--acento); color: #fff; }
+  input[type=number] { width: 70px; }
+  label.interruptor { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+  .opcion { margin-bottom: 8px; }
+  .opcion .nota { margin: 0 0 0 24px; }
+  .incidencia { margin-bottom: 10px; }
+  .en-curso { border: 1px solid var(--error); border-left-width: 4px; border-radius: 6px; padding: 8px 12px;
+              margin-bottom: 12px; background: color-mix(in srgb, var(--error) 8%, transparent); }
+  .en-curso p { margin: 0 0 6px; }
+  .en-curso .cuenta { font-family: var(--mono); font-weight: 600; }
+  .incidencia .nota { margin: 2px 0 0; }
+  .nota { color: var(--suave); font-size: 12px; }
+  #mensajes { font-family: var(--mono); font-size: 12px; max-height: 520px; overflow: auto; }
+  #mensajes div { padding: 4px 0; border-bottom: 1px dashed var(--borde); white-space: pre-wrap; word-break: break-word; }
+  #mensajes .c-eventos { color: var(--aviso); }
+  #mensajes .c-textos { color: var(--acento); }
+  #valores { font-family: var(--mono); font-size: 12px; }
+  #acceso { margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 6px; background: var(--fondo); }
+  #acceso h3 { font-size: 13px; margin: 0 0 6px; }
+  #acceso h3:not(:first-child) { margin-top: 10px; }
+  #acceso ul { margin: 0; padding-left: 18px; }
+  #acceso code { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+  #valores td:first-child { color: var(--suave); }
+  #aviso { position: fixed; bottom: 16px; right: 16px; background: var(--error); color: #fff;
+           padding: 8px 12px; border-radius: 6px; display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulador de planta</h1>
+  <div class="dato"><small>Hora simulada</small><b id="hora">–</b></div>
+  <div class="dato"><small>Turno</small><b id="turno">–</b></div>
+  <div class="dato"><small>Línea</small><span id="lineas">–</span></div>
+  <div class="dato"><small>Mensajes enviados</small><b id="contadores">–</b></div>
+  <div class="fila" style="margin:0 0 0 auto">
+    <label>Velocidad
+      <select id="acelerar">
+        <option value="1">×1 (tiempo real)</option><option value="10">×10</option>
+        <option value="60">×60 (1 min/s)</option><option value="600">×600 (10 min/s)</option>
+        <option value="3600">×3600 (1 h/s)</option>
+      </select>
+    </label>
+    <button id="pausa">Pausar</button>
+  </div>
+</header>
+
+<main>
+  <div class="col">
+    <section>
+      <h2>Equipos</h2>
+      <p class="nota">Desmarca un equipo para dejar de enviar sus datos (sigue simulándose). Pulsa una fila para ver sus valores.</p>
+      <table><thead><tr><th>Enviar</th><th>Equipo</th><th class="col-tipo">Tipo</th><th>Estado</th></tr></thead>
+        <tbody id="equipos"></tbody></table>
+      <div class="fila" style="margin-top:8px">
+        <button id="todos">Marcar todos</button><button id="ninguno">Desmarcar todos</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Salidas</h2>
+      <p class="nota">Dónde se envían los datos. Desactivar una salida no para la simulación: solo deja de escribir o publicar en ella.</p>
+      <div id="salidas"></div>
+      <div class="opcion">
+        <label class="interruptor"><input type="checkbox" id="sucio"> <b>Dato sucio</b></label>
+        <p class="nota">Estropea a propósito una pequeña parte de la telemetría y los eventos, para practicar la limpieza:
+          valores nulos o absurdos, mensajes duplicados, fechas en otro formato, contadores que vuelven a cero y rebotes de la pinza.
+          La simulación no cambia, solo lo que se envía.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Provocar incidencias</h2>
+      <div id="averias"></div>
+      <p class="nota">Para ver en los datos qué pasa cuando algo falla. Elige el equipo y la duración, y pulsa la incidencia.</p>
+      <div class="fila">
+        <label>Equipo <select id="inc-equipo"></select></label>
+        <label>Duración <input type="number" id="inc-min" value="30" min="1"> min</label>
+      </div>
+      <div class="incidencia">
+        <button data-inc="averia">Avería</button>
+        <p class="nota">El equipo se avería y para la línea: el PLC y el equipo pasan a <b>AVERIA</b> y los demás a <b>ESPERA</b>.
+          Genera los eventos de inicio y fin, una línea en el log del equipo y, al repararse, un parte de mantenimiento.
+          Si ocurre fuera de turno, al terminar la línea queda parada.</p>
+      </div>
+      <div class="incidencia">
+        <button data-inc="microparada">Microparada</button>
+        <p class="nota">Parada corta con una alarma de aviso (código W-…): la línea pasa a <b>MICROPARADA</b> y después vuelve a producir.
+          Solo funciona con la línea produciendo.</p>
+      </div>
+      <div class="incidencia">
+        <button id="fuga">Provocar fuga de aire</button>
+        <p class="nota">Aumenta el consumo de aire: el compresor pasa más tiempo en carga y consume más,
+          y la presión puede caer por debajo del mínimo (alarma W-410). Sigue hasta que la quites. No usa la duración.</p>
+      </div>
+      <div class="incidencia">
+        <button data-inc="fallo_inversor" data-equipo="">Fallo del inversor FV</button>
+        <p class="nota">La fotovoltaica deja de generar durante los minutos indicados (estado <b>FALLO</b>):
+          la planta compra más energía a la red. De noche apenas se nota.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section>
+      <h2>Valores de <span id="valores-eq">–</span></h2>
+      <p class="nota" id="sin-sel">Pulsa un equipo de la lista para ver sus valores y cómo leerlo desde Node-RED o desde los ficheros.</p>
+      <div id="acceso" hidden></div>
+      <table id="valores"><tbody></tbody></table>
+    </section>
+    <section>
+      <h2>Últimos mensajes</h2>
+      <div class="fila">
+        <select id="canal">
+          <option value="">Todos</option><option value="eventos">Eventos</option>
+          <option value="textos">Textos</option><option value="telemetria">Telemetría</option><option value="inspecciones">Inspecciones</option><option value="ordenes">Órdenes</option>
+        </select>
+        <label class="interruptor"><input type="checkbox" id="solo-sel"> Solo el equipo seleccionado</label>
+        <label class="interruptor"><input type="checkbox" id="congelar"> Congelar</label>
+      </div>
+      <div id="mensajes"></div>
+    </section>
+  </div>
+</main>
+<div id="aviso"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let estado = null, seleccionado = null;
+
+async function api(ruta, cuerpo) {
+  const opciones = cuerpo === undefined ? {} : {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(cuerpo)};
+  const r = await fetch(ruta, opciones);
+  if (!r.ok) {
+    const d = await r.json().catch(() => ({}));
+    avisar(d.detail || `Error ${r.status}`);
+    throw new Error(r.status);
+  }
+  return r.json();
+}
+
+function avisar(texto) {
+  const a = $("#aviso"); a.textContent = texto; a.style.display = "block";
+  setTimeout(() => a.style.display = "none", 4000);
+}
+
+const insignia = (e) => `<span class="estado e-${e}">${e}</span>`;
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+
+function pintarEstado() {
+  const e = estado;
+  $("#hora").textContent = e.hora_local || "–";
+  $("#turno").textContent = e.turno || "sin turno";
+  $("#lineas").innerHTML = e.lineas.map((l) =>
+    `${l.id} ${insignia(l.estado)} <span class="nota">${esc(l.referencia)}${l.motivo ? " · " + esc(l.motivo) : ""}</span>`).join("<br>");
+  $("#contadores").textContent = `${e.contadores.telemetria} tel. · ${e.contadores.eventos} ev. · ${e.contadores.textos} txt · ${e.contadores.inspecciones} insp. · ${e.contadores.ordenes} OF`;
+  if (document.activeElement !== $("#acelerar")) $("#acelerar").value = String(e.acelerar);
+  $("#pausa").textContent = e.pausado ? "Reanudar" : "Pausar";
+  $("#pausa").classList.toggle("primario", e.pausado);
+  $("#equipos").innerHTML = e.equipos.map((q) => `
+    <tr data-id="${q.id}" class="${q.id === seleccionado ? "sel" : ""}">
+      <td><input type="checkbox" data-pub="${q.id}" ${q.publicar ? "checked" : ""}></td>
+      <td title="${esc(q.descripcion)}">${q.id}</td><td class="nota col-tipo">${q.tipo}</td><td>${insignia(q.estado)}</td>
+    </tr>`).join("");
+  $("#salidas").innerHTML = e.salidas.map((s) => `
+    <div class="opcion">
+      <label class="interruptor"><input type="checkbox" data-salida="${s.nombre}" ${s.activa ? "checked" : ""}>
+        <b>${s.nombre}</b>${s.solo_vivo ? ' <span class="nota">(solo en vivo)</span>' : ""}</label>
+      <p class="nota">${esc(s.descripcion)}</p>
+    </div>`).join("");
+  $("#sucio").checked = e.dato_sucio;
+  pintarAverias(e);
+  $("#fuga").textContent = e.incidencias.fuga_aire ? "Quitar fuga de aire" : "Provocar fuga de aire";
+  $("#fuga").classList.toggle("primario", e.incidencias.fuga_aire);
+  const sel = $("#inc-equipo");
+  if (!sel.options.length) {
+    sel.innerHTML = e.equipos.filter((q) => q.admite_incidencias).map((q) =>
+      `<option value="${q.id}">${q.id} — ${esc(q.descripcion)}</option>`).join("");
+  }
+}
+
+async function refrescar() {
+  try {
+    estado = await api("/api/estado");
+    pintarEstado();
+    if (seleccionado) {
+      // Sin api(): que un equipo sin telemetría (el MES) no muestre un aviso de error cada 2 s
+      const r = await fetch(`/api/valores/${seleccionado}`);
+      const v = r.ok ? await r.json() : null;
+      if (!v) {
+        $("#valores tbody").innerHTML = `<tr><td class="nota">Sin telemetría: este equipo no la publica o todavía no ha llegado la primera muestra.</td></tr>`;
+      } else {
+        $("#valores-eq").textContent = `${v.equipo} (${v.estado})`;
+        $("#valores tbody").innerHTML = Object.entries(v.valores).map(([k, x]) =>
+          `<tr><td>${k}</td><td>${esc(x)}</td></tr>`).join("");
+      }
+    }
+    if (!$("#congelar").checked) {
+      const p = new URLSearchParams({n: 60});
+      if ($("#canal").value) p.set("canal", $("#canal").value);
+      if ($("#solo-sel").checked && seleccionado) p.set("equipo", seleccionado);
+      const ms = await api(`/api/ultimos?${p}`);
+      $("#mensajes").innerHTML = ms.map((m) => {
+        const {canal, ...resto} = m;
+        return `<div class="c-${canal}">${esc(JSON.stringify(resto))}</div>`;
+      }).join("");
+    }
+  } catch (err) { /* el aviso ya se ha mostrado */ }
+}
+
+document.addEventListener("change", async (ev) => {
+  const t = ev.target;
+  if (t.dataset.pub) await api(`/api/equipos/${t.dataset.pub}`, {publicar: t.checked});
+  else if (t.dataset.salida) {
+    await api(`/api/salidas/${t.dataset.salida}`, {activa: t.checked});
+    if (seleccionado) pintarAcceso();
+  }
+  else if (t.id === "sucio") await api("/api/dato_sucio", {activa: t.checked});
+  else if (t.id === "acelerar") await api("/api/control", {acelerar: Number(t.value)});
+  refrescar();
+});
+
+document.addEventListener("click", async (ev) => {
+  const t = ev.target;
+  const fila = t.closest("tr[data-id]");
+  if (fila && t.tagName !== "INPUT") {
+    seleccionado = fila.dataset.id;
+    $("#valores-eq").textContent = seleccionado;
+    $("#valores tbody").innerHTML = "";
+    pintarAcceso();
+    refrescar();
+    return;
+  }
+  if (t.dataset.reparar) {
+    await api("/api/incidencias", {incidencia: "reparar", equipo: t.dataset.reparar});
+    avisarOk(`Reparando ${t.dataset.reparar}`);
+  } else if (t.dataset.inc) {
+    const equipo = t.dataset.equipo === undefined ? $("#inc-equipo").value : null;
+    await api("/api/incidencias", {incidencia: t.dataset.inc, equipo, minutos: Number($("#inc-min").value)});
+    avisarOk(`Incidencia enviada: ${t.dataset.inc}${equipo ? " en " + equipo : ""}`);
+  } else if (t.id === "fuga") {
+    await api("/api/incidencias", {incidencia: estado.incidencias.fuga_aire ? "fin_fuga_aire" : "fuga_aire"});
+  } else if (t.id === "pausa") {
+    await api("/api/control", {pausado: !estado.pausado});
+  } else if (t.id === "todos" || t.id === "ninguno") {
+    for (const q of estado.equipos) await api(`/api/equipos/${q.id}`, {publicar: t.id === "todos"});
+  } else return;
+  refrescar();
+});
+
+// --- Averías en curso: cuenta atrás en tiempo real (se recalcula con cada refresco) ---
+let finesReales = {};          // equipo -> instante (ms del reloj del navegador) en que se reparará solo
+
+function duracion(s) {
+  s = Math.max(0, Math.round(s));
+  if (s >= 86400) return "más de un día";
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), seg = s % 60;
+  const dos = (x) => String(x).padStart(2, "0");
+  return h ? `${h}:${dos(m)}:${dos(seg)}` : `${dos(m)}:${dos(seg)}`;
+}
+
+function pintarAverias(e) {
+  finesReales = {};
+  $("#averias").innerHTML = e.averias.map((a) => {
+    if (a.restante_real_s !== null) finesReales[a.equipo] = Date.now() + a.restante_real_s * 1000;
+    return `<div class="en-curso">
+      <p><b>Avería en curso: ${esc(a.equipo)}</b> (${esc(a.codigo)}, ${esc(a.descripcion)}), desde las ${a.inicio_local}.</p>
+      <p>Se reparará sola a las ${a.fin_local} (hora simulada), dentro de
+        <span class="cuenta" data-fin="${esc(a.equipo)}">${a.restante_real_s === null ? "– (en pausa)" : duracion(a.restante_real_s)}</span>
+        de tiempo real a la velocidad actual (×${e.acelerar}).</p>
+      <button class="primario" data-reparar="${esc(a.equipo)}">Reparar ahora</button>
+      <span class="nota">Termina la avería en este momento, con su evento de fin y su parte de mantenimiento.</span>
+    </div>`;
+  }).join("");
+}
+
+setInterval(() => {
+  for (const el of document.querySelectorAll("[data-fin]")) {
+    const fin = finesReales[el.dataset.fin];
+    if (fin !== undefined) el.textContent = duracion((fin - Date.now()) / 1000);
+  }
+}, 1000);
+
+async function pintarAcceso() {
+  const a = await api(`/api/acceso/${seleccionado}`).catch(() => null);
+  if (!a) return;
+  const desactivada = (x) => x.activa ? "" : ' <span class="nota">(salida desactivada ahora mismo)</span>';
+  let html = "";
+  if (a.mqtt) {
+    html += `<h3>Desde Node-RED (nodo mqtt in)${desactivada(a.mqtt)}</h3><ul>`;
+    html += a.mqtt.servidores.map((s) =>
+      `<li>${esc(s.desde)}: servidor <code>${esc(s.servidor)}</code>, puerto <code>${s.puerto}</code></li>`).join("");
+    html += a.mqtt.topics.map((x) => `<li>${esc(x.canal)}: topic <code>${esc(x.topic)}</code></li>`).join("");
+    html += `<li>Todo lo de este equipo: <code>${esc(a.mqtt.todos)}</code></li>`;
+    html += `<li>En <i>Output</i>, elige «a parsed JSON object»: los datos llegan en <code>msg.payload</code>.</li></ul>`;
+  }
+  if (a.ficheros) {
+    html += `<h3>Desde ficheros (un .jsonl por día)${desactivada(a.ficheros)}</h3><ul>`;
+    html += a.ficheros.carpetas.map((x) => `<li>${esc(x.canal)}: <code>${esc(x.carpeta)}</code></li>`).join("");
+    html += "</ul>";
+  }
+  $("#acceso").innerHTML = html;
+  $("#acceso").hidden = !html;
+  $("#sin-sel").hidden = true;
+}
+
+function avisarOk(texto) {
+  const a = $("#aviso"); a.style.background = "var(--ok)"; avisar(texto);
+  setTimeout(() => a.style.background = "", 4000);
+}
+
+refrescar();
+setInterval(refrescar, 2000);
+</script>
+</body>
+</html>

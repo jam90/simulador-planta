@@ -1,0 +1,213 @@
+# Configuración de la planta simulada.
+# Todos los datos son SINTÉTICOS. Los precios y los periodos tarifarios son
+# FICTICIOS y simplificados: sirven para practicar, no para calcular facturas.
+
+planta:
+  nombre: demo
+  zona_horaria: Europe/Madrid
+  semilla: 42                     # misma semilla + misma configuración = mismos datos
+  intervalo_vivo_s: 5             # muestreo en modo vivo
+  intervalo_historico_s: 60       # muestreo al generar histórico
+  latitud: 43.3                   # aproximadamente Bizkaia (para el sol)
+  longitud: -3.0
+
+calendario:
+  turnos:
+    - {nombre: manana, inicio: "06:00", fin: "14:00"}
+    - {nombre: tarde,  inicio: "14:00", fin: "22:00"}
+    - {nombre: noche,  inicio: "22:00", fin: "06:00", activo: false}
+  descansos:
+    - {inicio: "10:00", minutos: 15}
+    - {inicio: "18:00", minutos: 15}
+  dias_laborables: [lun, mar, mie, jue, vie]
+  festivos: ["2026-10-12", "2026-11-01", "2026-12-08", "2026-12-25"]
+  mantenimiento_preventivo:       # parada planificada dentro del turno
+    - {dia: vie, inicio: "12:00", minutos: 60}
+
+clima:
+  temp_media_anual_c: 14.5
+  amplitud_anual_c: 5.5           # diferencia entre la media y el mes más cálido/frío
+  amplitud_diaria_c: 4.0          # diferencia entre la media y el máximo del día
+
+referencias: [REF-A100, REF-B200, REF-C300]
+
+lineas:
+  - id: L1
+    descripcion: Célula de mecanizado y soldadura
+    parametros:
+      cadencia_piezas_h: 80
+      tasa_nok: 0.02
+      cambios_formato_por_turno: 0.5
+    equipos:
+      - id: plc-l1
+        tipo: plc_linea
+        descripcion: PLC de la línea 1
+        fiabilidad: {microparadas_por_hora: 0.4, horas_entre_averias: 200, minutos_reparacion: [15, 45]}
+
+      - id: robot-01
+        tipo: robot
+        descripcion: Robot de manipulación que carga y descarga la CNC
+        parametros: {ciclo_nominal_s: 42, herramienta: pinza}
+        fiabilidad: {microparadas_por_hora: 0.7, horas_entre_averias: 120, minutos_reparacion: [20, 90]}
+
+      - id: robot-02
+        tipo: robot
+        descripcion: Robot de soldadura
+        parametros: {ciclo_nominal_s: 38, herramienta: soldadura}
+        fiabilidad: {microparadas_por_hora: 0.5, horas_entre_averias: 150, minutos_reparacion: [20, 90]}
+        degradacion:                  # avería "anunciada": la variable crece poco a poco
+          variable: corriente_eje3_a
+          deriva_por_dia: 0.03        # +3 % al día sobre el valor nominal
+          averia_al_superar: 1.4      # avería al llegar a 1,4 veces el nominal
+          minutos_reparacion: [120, 240]
+
+      - id: cnc-01
+        tipo: cnc
+        descripcion: Centro de mecanizado CNC
+        parametros: {rpm_nominal: 8000, mecanizado_s: 40, vida_herramienta_piezas: 400}
+        fiabilidad: {microparadas_por_hora: 0.4, horas_entre_averias: 180, minutos_reparacion: [20, 120]}
+
+      - id: mes
+        tipo: mes
+        descripcion: MES de la línea (órdenes de fabricación y consumo de materiales)
+        parametros:
+          cantidad_orden: [200, 600]      # piezas por orden, en múltiplos de 50
+          # Lista de materiales: consumo estándar por pieza. El real añade hasta 2 x merma_pct.
+          # Los lotes del proveedor duran entre `piezas` [mín, máx] piezas.
+          materiales:
+            barra_acero_s275:
+              unidad: kg
+              por_pieza: {REF-A100: 0.78, REF-B200: 0.95, REF-C300: 1.2}
+              merma_pct: 3
+              lote: {prefijo: AC, piezas: [1500, 3000]}
+            tornillo_m8x20:
+              unidad: ud
+              por_pieza: 4
+              merma_pct: 1
+              decimales: 0
+              lote: {prefijo: TO, piezas: [3000, 6000]}
+            hilo_soldadura:
+              unidad: kg
+              por_pieza: 0.024
+              merma_pct: 4
+              decimales: 2
+              origen: robot-02          # el robot degradado gasta más
+              lote: {prefijo: HS, piezas: [2000, 4000]}
+            gas_proteccion:
+              unidad: L
+              por_pieza: 3.6
+              merma_pct: 5
+              decimales: 0
+              origen: robot-02
+              lote: {prefijo: GP, piezas: [800, 1500]}
+
+      - id: calidad-01
+        tipo: inspeccion
+        descripcion: Estación de inspección de calidad al final de la línea
+        parametros:
+          # Cotas que se miden en cada pieza. `origen`: equipo cuyo problema la saca de tolerancia.
+          # Tolerancia simétrica: nominal ± tolerancia.
+          cotas:
+            diametro_agujero:
+              nominal: {REF-A100: 12.0, REF-B200: 14.0, REF-C300: 16.0}
+              tolerancia: 0.02
+              unidad: mm
+              origen: cnc-01
+            longitud:
+              nominal: {REF-A100: 120.0, REF-B200: 150.0, REF-C300: 180.0}
+              tolerancia: 0.1
+              unidad: mm
+              origen: cnc-01
+            garganta_soldadura:
+              nominal: 4.0
+              tolerancia: 0.3
+              unidad: mm
+              decimales: 2
+              origen: robot-02
+            dureza_soldadura:
+              nominal: 200
+              tolerancia: 25
+              unidad: HV
+              decimales: 0
+              origen: robot-02
+
+      - id: red-l1
+        tipo: analizador_red
+        descripcion: Analizador de red del cuadro de la línea 1
+        mide: [plc-l1, robot-01, robot-02, cnc-01]
+        parametros: {perdidas_pct: 1.5}
+
+  - id: SG
+    descripcion: Servicios generales
+    equipos:
+      - id: compresor-01
+        descripcion: Compresor de tornillo
+        tipo: compresor
+        parametros: {presion_consigna_bar: 7, caudal_maximo_m3_min: 3.6, potencia_carga_kw: 22, fugas_base_m3_min: 0.25}
+
+      - id: climatizacion-01
+        descripcion: Climatización de la nave
+        tipo: climatizacion
+        parametros: {consigna_invierno_c: 19, consigna_verano_c: 26, potencia_maxima_kw: 30}
+
+      - id: iluminacion-01
+        descripcion: Iluminación de la nave
+        tipo: iluminacion
+        parametros: {potencia_kw: 9, potencia_emergencia_kw: 0.8}
+
+      - id: ambiente-01
+        descripcion: Sensores de ambiente de la nave y del exterior
+        tipo: ambiente
+
+      - id: fv-01
+        tipo: fotovoltaica
+        descripcion: Instalación fotovoltaica de autoconsumo
+        parametros: {potencia_pico_kw: 100}
+        fiabilidad: {horas_entre_averias: 1500, minutos_reparacion: [120, 1440]}
+
+      - id: red-sg
+        tipo: analizador_red
+        descripcion: Analizador de red del cuadro de servicios generales
+        mide: [compresor-01, climatizacion-01, iluminacion-01]
+        parametros: {perdidas_pct: 1.5}
+
+      - id: contador-general
+        tipo: contador_general
+        descripcion: Contador de la acometida, en la frontera con la red eléctrica
+        mide: [red-l1, red-sg]
+        generacion: [fv-01]
+
+tarifa:
+  nota: "FICTICIA y simplificada (6 periodos). No usar para cálculos reales."
+  precios_eur_kwh: {P1: 0.21, P2: 0.18, P3: 0.15, P4: 0.13, P5: 0.11, P6: 0.09}
+  precio_excedentes_eur_kwh: 0.05
+  potencia_contratada_kw: {P1: 58, P2: 58, P3: 58, P4: 58, P5: 58, P6: 70}
+  temporadas:                     # meses de cada temporada
+    alta: [1, 2, 7, 12]
+    media_alta: [3, 11]
+    media: [6, 8, 9]
+    baja: [4, 5, 10]
+  # Periodo de cada hora (0..23) en días laborables. Fines de semana y festivos: P6.
+  horas_laborable:
+    alta:       [P6,P6,P6,P6,P6,P6,P6,P6, P2, P1,P1,P1,P1,P1, P2,P2,P2,P2, P1,P1,P1,P1, P2,P2]
+    media_alta: [P6,P6,P6,P6,P6,P6,P6,P6, P3, P2,P2,P2,P2,P2, P3,P3,P3,P3, P2,P2,P2,P2, P3,P3]
+    media:      [P6,P6,P6,P6,P6,P6,P6,P6, P4, P3,P3,P3,P3,P3, P4,P4,P4,P4, P3,P3,P3,P3, P4,P4]
+    baja:       [P6,P6,P6,P6,P6,P6,P6,P6, P5, P4,P4,P4,P4,P4, P5,P5,P5,P5, P4,P4,P4,P4, P5,P5]
+
+salidas:
+  # agrupar: equipo -> datos/<linea>/<equipo>/<canal>/AAAA-MM-DD.jsonl (como los topics MQTT)
+  #          canal  -> datos/<canal>/AAAA-MM-DD.jsonl (todos los equipos juntos)
+  jsonl:     {activa: true, ruta: datos, agrupar: equipo}
+  curva_csv: {activa: true, ruta: datos/energia}      # curva cuartohoraria del contador general
+  logs:      {activa: true, ruta: datos/logs}         # un .log de texto por equipo
+  mqtt:      {activa: true, host: localhost, puerto: 1883, prefijo: fabrica}   # solo en modo vivo
+  textos:    {activa: true, generador: plantillas}    # partes de mantenimiento y notas de turno
+
+dato_sucio:
+  activo: false
+  prob_nulo: 0.01                 # un valor llega vacío
+  prob_atipico: 0.005             # un valor absurdo (x10, negativo...)
+  prob_duplicado: 0.01            # el mismo mensaje llega dos veces
+  prob_formato_fecha: 0.01        # fecha en formato local, sin zona horaria
+  prob_reinicio_contador: 0.0002  # un contador acumulado vuelve a cero
+  prob_rebote: 0.02               # rebote del sensor en un cambio de señal

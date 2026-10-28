@@ -1,0 +1,32 @@
+# Simulador de planta + broker MQTT.
+#   docker compose up -d          -> web en http://localhost:8000, MQTT en localhost:1883, ficheros en datos-vivo/
+#   docker compose run --rm --no-deps simulador historico --desde 2026-09-01 --dias 30
+#   docker compose run --rm --no-deps simulador --config config/planta-sucio.yaml --salida datos-sucios historico --desde 2026-09-01 --dias 30
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    ports:
+      - "${MQTT_PUERTO:-1883}:1883"   # si 1883 está ocupado: MQTT_PUERTO=11883 docker compose up -d
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  simulador:
+    build: .
+    image: simulador-planta:1.1
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_HOST: mosquitto        # dentro de Docker el broker se llama así, no localhost
+      MQTT_PUERTO_EXTERNO: ${MQTT_PUERTO:-1883}   # solo para indicarlo en la web
+      TZ: Europe/Madrid
+    # En vivo escribe en datos-vivo/, para no mezclarse con el histórico de datos/.
+    command: ["--salida", "datos-vivo", "vivo"]   # p. ej.: ["--salida", "datos-vivo", "vivo", "--acelerar", "60"]
+    ports:
+      - "${WEB_PUERTO:-8000}:8000"    # si 8000 está ocupado: WEB_PUERTO=18000 docker compose up -d
+    volumes:
+      - ./config:/app/config:ro
+      - ./datos:/app/datos
+      - ./datos-sucios:/app/datos-sucios   # --salida datos-sucios (con config/planta-sucio.yaml)
+      - ./datos-vivo:/app/datos-vivo       # --salida datos-vivo (modo en vivo, sin tocar datos/)
+    restart: unless-stopped
