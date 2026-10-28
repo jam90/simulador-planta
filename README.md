@@ -1,5 +1,7 @@
 # Simulador de planta
 
+![Animación pixel art de la planta: CNC, robots, cinta, control de calidad y operarios](docs/img/planta.gif)
+
 Genera datos sintéticos de una pequeña planta industrial: PLC, robots, CNC, estación de calidad, compresor, consumos eléctricos, fotovoltaica, alarmas, partes de mantenimiento…
 
 Publica los datos en vivo por MQTT y los escribe en ficheros (JSONL, CSV y logs de texto). También genera históricos reproducibles. Sirve para practicar la ingesta, el almacenamiento, la visualización y el análisis de datos industriales, por ejemplo con Python, Node-RED, Logstash, Elasticsearch o InfluxDB.
@@ -207,7 +209,7 @@ Con Docker, la carpeta `config/` se monta en el contenedor: basta editar el YAML
 simulador-planta/
 ├── docker-compose.yml, Dockerfile, requirements.txt
 ├── config/            planta.yaml, planta-sucio.yaml, mosquitto.conf
-├── docs/              formato-datos.md
+├── docs/              formato-datos.md; img/ (animación del README y su script)
 ├── simulador/
 │   ├── __main__.py    línea de comandos
 │   ├── motor.py       bucle histórico / vivo y reparto a las salidas
