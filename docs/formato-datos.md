@@ -1,6 +1,6 @@
 # Formato de los datos del simulador
 
-Este documento describe todo lo que genera el simulador: telemetría, eventos, inspecciones de calidad, órdenes de fabricación, textos, curva de carga y logs. Es también la **interfaz con los módulos 4 y 5** del curso «Interroga a tu fábrica»: qué datos hay, con qué estructura y dónde están.
+Este documento describe todo lo que genera el simulador: telemetría, eventos, inspecciones de calidad, órdenes de fabricación, textos, curva de carga y logs.
 
 Todos los datos son sintéticos. La tarifa eléctrica y los precios son ficticios.
 
@@ -183,7 +183,7 @@ Cada analizador suma lo que mide más un 1,5 % de pérdidas. Por eso, en increme
 
 Con mucho sol y poco consumo, la planta exporta y el `factor_potencia` del contador general baja mucho. Es lo que ocurre de verdad en plantas con autoconsumo.
 
-**Cálculos que no da el simulador y pueden hacer los alumnos:** energía por pieza, OEE, coste por línea o por turno, consumo fuera de turno.
+**Cálculos que no da el simulador y se pueden hacer:** energía por pieza, OEE, coste por línea o por turno, consumo fuera de turno.
 
 ## Eventos
 
@@ -254,9 +254,9 @@ La estación `calidad-01` mide **todas las piezas** y publica un mensaje por pie
 - **Defectos con causa:** si una pieza es defectuosa, falla al menos una cota (a veces dos). Si la herramienta de la CNC está gastada (`desgaste_herramienta_pct` > 80), fallan sobre todo el diámetro y la longitud. Si `robot-02` está degradado, fallan sobre todo las de soldadura.
 - **Deriva visible en las piezas buenas:** con el desgaste de la herramienta, el diámetro se va acercando al límite inferior; con la degradación de `robot-02`, la garganta de soldadura se acerca al superior.
 
-**Para qué sirve en los cursos:**
+**Para qué sirve:**
 
-- **InfluxDB** (no aplica: no hay curso de InfluxDB; se deja como referencia): buenas candidatas a *tag*: `linea`, `referencia`, `cota`, `resultado`, `unidad`. A *field*: `valor`, `desviacion`. `pieza_id` debe ser field, no tag: hay un valor distinto por pieza (cardinalidad alta). `orden_id` es un término medio (unas pocas órdenes al día): como tag permite comparar órdenes. Hay que «aplanar» el mensaje y escribir un punto por cota.
+- **InfluxDB:** buenas candidatas a *tag*: `linea`, `referencia`, `cota`, `resultado`, `unidad`. A *field*: `valor`, `desviacion`. `pieza_id` debe ser field, no tag: hay un valor distinto por pieza (cardinalidad alta). `orden_id` es un término medio (unas pocas órdenes al día): como tag permite comparar órdenes. Hay que «aplanar» el mensaje y escribir un punto por cota.
 - **Elasticsearch:** `medidas` es un array de objetos. Si no se declara como `nested`, Elasticsearch mezcla los campos de las distintas medidas. Una búsqueda de `cota: diametro_agujero` y `resultado: NOK` devuelve también las piezas con el diámetro bien y otra cota mal. En 30 días de histórico hay 200 piezas con el diámetro mal y 524 que saldrían por error.
 
 ## Órdenes de fabricación
@@ -305,9 +305,9 @@ Las publica el **MES** de la línea (`mes`), que es un origen de datos más, no 
 - **Piezas:** las de cada orden coinciden con las inspecciones que llevan su `orden_id`. Con el PLC cuadran en el total, no por orden.
 - **Trazabilidad:** pieza (`pieza_id`) → orden (`orden_id`) → lotes de material.
 - **Ritmo:** 30 días de histórico dan 63 órdenes. La orden en curso al terminar la simulación no se publica, así que sus piezas tienen un `orden_id` que no aparece en las órdenes.
-- **Cálculos que pueden hacer los alumnos:** desviación de consumo (real − prevista) por orden o material, rechazo por orden, y si las órdenes con más desviación coinciden con la degradación de `robot-02`.
+- **Cálculos que se pueden hacer:** desviación de consumo (real − prevista) por orden o material, rechazo por orden, y si las órdenes con más desviación coinciden con la degradación de `robot-02`.
 
-**Para qué sirve en los cursos (Elasticsearch):** es el caso de la receta. Cada material tiene su cantidad y su unidad, y solo tienen sentido juntos. Sin `nested`, Elasticsearch guarda por separado la lista de materiales, la de cantidades y la de unidades. Una búsqueda de `material: hilo_soldadura` y `cantidad_real > 100` devuelve 62 de las 63 órdenes (porque los tornillos o el gas superan 100), aunque el hilo nunca pasa de unos pocos kg. Con `nested` en el mapping y en la consulta, no devuelve ninguna.
+**Para qué sirve (Elasticsearch):** es el caso de la receta. Cada material tiene su cantidad y su unidad, y solo tienen sentido juntos. Sin `nested`, Elasticsearch guarda por separado la lista de materiales, la de cantidades y la de unidades. Una búsqueda de `material: hilo_soldadura` y `cantidad_real > 100` devuelve 62 de las 63 órdenes (porque los tornillos o el gas superan 100), aunque el hilo nunca pasa de unos pocos kg. Con `nested` en el mapping y en la consulta, no devuelve ninguna.
 
 ## Textos en lenguaje natural
 

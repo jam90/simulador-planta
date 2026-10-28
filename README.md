@@ -1,9 +1,8 @@
 # Simulador de planta
 
-Genera datos sintéticos de una pequeña planta industrial: PLC, robots, CNC, estación de calidad, compresor, consumos eléctricos, fotovoltaica, alarmas, partes de mantenimiento… Es **común a los cursos**:
+Genera datos sintéticos de una pequeña planta industrial: PLC, robots, CNC, estación de calidad, compresor, consumos eléctricos, fotovoltaica, alarmas, partes de mantenimiento…
 
-- ~~**Monitorización industrial con InfluxDB y Grafana**~~ *(no aplica: curso cancelado)*: los alumnos leían por MQTT con Python o Node-RED y escribían en InfluxDB.
-- **Interroga a tu fábrica**: los alumnos ingieren ficheros y MQTT con Python y Logstash, los cargan en Elasticsearch y los usan para el RAG.
+Publica los datos en vivo por MQTT y los escribe en ficheros (JSONL, CSV y logs de texto). También genera históricos reproducibles. Sirve para practicar la ingesta, el almacenamiento, la visualización y el análisis de datos industriales, por ejemplo con Python, Node-RED, Logstash, Elasticsearch o InfluxDB.
 
 Todos los datos son inventados. La tarifa eléctrica y los precios son ficticios.
 
@@ -119,7 +118,7 @@ datos/
 
 Así se puede trabajar con un solo origen de datos (por ejemplo, solo el compresor, la estación de calidad o el MES). Para tenerlo todo junto, con un fichero por canal y día (`datos/telemetria/`, `datos/eventos/`…), pon `agrupar: canal` en `salidas.jsonl` de `planta.yaml`.
 
-**Los datos son reproducibles.** Con la misma configuración y el mismo comando, todos los profesores obtienen exactamente los mismos ficheros. Por eso en los materiales del curso conviene usar siempre `--desde 2026-09-01 --dias 30`.
+**Los datos son reproducibles.** Con la misma configuración y el mismo comando, se obtienen exactamente los mismos ficheros. Para que los resultados coincidan entre personas, usad todos el mismo comando (por ejemplo, `--desde 2026-09-01 --dias 30`).
 
 Si ya hay datos en `datos/`, el simulador se niega a mezclarlos. Añade `--sobrescribir` para borrarlos y generar los nuevos.
 
@@ -200,7 +199,7 @@ Todo se ajusta en `config/planta.yaml`, sin tocar el código:
 
 Las frases de los textos en lenguaje natural están en `simulador/textos/plantillas.yaml`.
 
-Con Docker, la carpeta `config/` se monta en el contenedor: basta editar el YAML y reiniciar (`docker compose restart simulador`). Si cambias la configuración, los datos dejan de coincidir con los de otros compañeros.
+Con Docker, la carpeta `config/` se monta en el contenedor: basta editar el YAML y reiniciar (`docker compose restart simulador`). Si cambias la configuración, los datos dejan de coincidir con los de quien use la configuración original.
 
 ## Estructura
 
