@@ -6,9 +6,12 @@ import { $, esc, horaIso, insignia, num, poner, valor } from "../util.js";
 import { htmlAcceso } from "../componentes/acceso.js";
 import { actualizarIncidencias, escucharIncidencias, htmlIncidencias } from "../componentes/incidencias.js";
 import { modulo } from "../equipos/index.js";
+import { PRODUCE } from "../equipos/svg.js";
+import { estadoEn } from "../componentes/sinoptico.js";
+import * as reloj from "../reloj.js";
 
-let raiz = null, id = null, meta = null, mod = null, nodoDibujo = null;
-let temporizador = null, claveSalidas = "";
+let raiz = null, id = null, meta = null, mod = null, nodoDibujo = null, grupo = null, datos = null;
+let temporizador = null, claveSalidas = "", marco = null, estadoPintado = null;
 
 function montar(el, ctx, params) {
   raiz = el;
@@ -73,9 +76,38 @@ function montar(el, ctx, params) {
   mod.montarFicha?.(el, meta, ctx);
   pedirRecientes();
   temporizador = setInterval(pedirRecientes, 3000);
+  estadoPintado = null;
+  marco = requestAnimationFrame(bucle);
+}
+
+/** Animación del dibujo, con la misma hora dibujada que el sinóptico. */
+function bucle(ahora) {
+  if (!raiz) return;
+  const tm = reloj.avanzar(ahora);
+  if (datos && grupo && tm !== null) {
+    const estado = estadoEn(datos.estados, tm, datos.estadoActual);
+    const l = datos.linea;
+    datos.produce = l ? PRODUCE.has(estadoEn(l.estados, tm, l.estado)) : false;
+    if (estado !== estadoPintado) { estadoPintado = estado; datos.estado = estado; mod.actualizar(grupo, datos); }
+    if (meta.tipo === "inspeccion" && l) palpador(datos, l, tm);
+    mod.animar?.(grupo, datos, tm, reloj.esRapido() && !reloj.enPausa());
+  }
+  marco = requestAnimationFrame(bucle);
+}
+
+/** Sin cinta en la ficha: el palpador baja un rato después de llegar cada pieza. */
+function palpador(d, l, tm) {
+  const llegadas = l.piezas.filter(([t]) => t <= tm);
+  const ultima = llegadas[llegadas.length - 1];
+  if (!ultima) { d.bajo = null; return; }
+  const k = (tm - ultima[0]) / l.intervalo_pieza;
+  d.bajo = Math.min(1, Math.abs(k - 0.6) / 0.12);
+  const medidas = llegadas.filter(([t]) => (tm - t) / l.intervalo_pieza >= 0.6);
+  d.ultimo = medidas.length ? medidas[medidas.length - 1][1] : null;
 }
 
 function desmontar() {
+  cancelAnimationFrame(marco);
   clearInterval(temporizador);
   mod?.desmontarFicha?.();
   raiz = null;
@@ -91,11 +123,17 @@ function actualizar(ctx) {
   if (document.activeElement !== pub) pub.checked = eq.publicar;
 
   // Dibujo animado (lo crea el módulo del tipo una vez; después solo se actualiza)
+  reloj.sincronizar(ctx.vista);
   if (!nodoDibujo) {
     nodoDibujo = $("#ficha-dibujo", raiz);
     nodoDibujo.innerHTML = mod.dibujo(meta);
+    grupo = nodoDibujo.querySelector(".eq-sin") || nodoDibujo;
   }
-  mod.actualizar(nodoDibujo, datosEquipo(ctx), ctx);
+  const previo = datos;
+  datos = datosEquipo(ctx);
+  if (previo) { datos.bajo = previo.bajo; datos.ultimo = previo.ultimo; }
+  datos.estado = estadoPintado ?? datos.estadoActual;
+  mod.actualizar(grupo, datos, ctx);
 
   // Indicadores destacados del tipo
   poner($("#ficha-destacados", raiz), (mod.destacados?.(datosEquipo(ctx), ctx) || []).map((d) => `
@@ -127,8 +165,8 @@ function actualizar(ctx) {
 /** Lo que recibe el módulo de un tipo de equipo para dibujarse. */
 function datosEquipo(ctx) {
   const v = ctx.vista.equipos[id];
-  return { id, meta, estado: v.estado, valores: v.valores || {}, ciclos: v.ciclos,
-    linea: ctx.vista.lineas.find((l) => l.id === meta.linea) };
+  return { id, meta, estado: v.estado, estadoActual: v.estado, valores: v.valores || {}, ciclos: v.ciclos,
+    avisos: v.avisos, estados: v.estados, linea: ctx.vista.lineas.find((l) => l.id === meta.linea) };
 }
 
 async function pedirRecientes() {

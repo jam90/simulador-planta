@@ -63,11 +63,11 @@
 .eq-sin[data-estado="ESPERA"], .eq-sin[data-estado="PARADA"], .eq-sin[data-estado="PARADO"],
 .eq-sin[data-estado="APAGADO"] { opacity: .62; }
 /* Halo solo en el equipo que causa el problema (lo marca el sinóptico); en la ficha, por su estado */
-.eq-sin.con-problema .zona-clic, .eq-ficha[data-estado="AVERIA"] .zona-clic, .eq-ficha[data-estado="FALLO"] .zona-clic,
-.eq-ficha[data-estado="MICROPARADA"] .zona-clic {
+.eq-sin.con-problema .zona-clic, .eq-ficha [data-estado="AVERIA"] .zona-clic, .eq-ficha [data-estado="FALLO"] .zona-clic,
+.eq-ficha [data-estado="MICROPARADA"] .zona-clic {
   stroke: var(--e-averia); stroke-width: 3; fill: color-mix(in srgb, var(--e-averia) 10%, transparent);
   animation: halo 1.2s ease-in-out infinite; }
-.eq-sin.con-problema.aviso .zona-clic, .eq-ficha[data-estado="MICROPARADA"] .zona-clic {
+.eq-sin.con-problema.aviso .zona-clic, .eq-ficha [data-estado="MICROPARADA"] .zona-clic {
   stroke: var(--e-microparada); fill: color-mix(in srgb, var(--e-microparada) 10%, transparent); }
 .eq-sin[data-estado="AVERIA"] .piloto, .eq-sin[data-estado="MICROPARADA"] .piloto,
 .eq-sin[data-estado="FALLO"] .piloto { animation: latido 1.2s ease-in-out infinite; }
