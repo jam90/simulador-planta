@@ -146,15 +146,27 @@ Esto no es reproducible, porque depende de la hora a la que se lance.
 
 ## Interfaz web
 
-En http://localhost:8000 (solo en modo vivo):
+En http://localhost:8000 (solo en modo vivo). En español, euskera e inglés, con tema claro y oscuro.
 
-- **Hora simulada, turno y estado de la línea.**
-- **Velocidad:** tiempo real o acelerado (×10, ×60, ×600, ×3600). Con ×600 se ve un turno entero en menos de un minuto.
-- **Equipos:** elige qué equipos se envían. Los demás se siguen simulando, pero no se publican. Pulsa una fila para ver sus valores actuales y **cómo leerlo**: servidor, puerto y topics MQTT para Node-RED, y carpetas de sus ficheros.
-- **Salidas:** activa o desactiva MQTT, JSONL, logs y la curva CSV.
-- **Dato sucio:** introduce nulos, valores absurdos, duplicados y fechas mal formadas, para practicar la limpieza del dato.
-- **Incidencias:** provoca una avería o una microparada en un equipo, una fuga de aire (el compresor trabaja más y puede saltar la alarma de presión baja) o un fallo del inversor fotovoltaico.
-- **Últimos mensajes:** lo que se está enviando, filtrado por tipo o por equipo.
+![La planta en vivo: esquema animado con una microparada del robot de soldadura e indicadores del turno](docs/img/interfaz-planta.png)
+
+- **Cabecera (en todas las pantallas):** hora simulada, turno y estado de la línea; **velocidad** (tiempo real o ×10, ×60, ×600, ×3600; con ×600 se ve un turno entero en menos de un minuto) y **pausa**. Si hay una avería en curso, aparece debajo con su cuenta atrás y el botón **Reparar ahora**.
+- **Planta:** esquema animado de la nave con todos los equipos e indicadores del turno (piezas, orden de fabricación en curso, OEE aproximado, consumo y tarifa).
+  - La animación sigue el proceso de la célula: el robot de manipulación deja la pieza en el palé de carga de la CNC, que es de doble palé; al terminar el mecanizado anterior se cambian los palés; la pieza mecanizada sale a la cinta, la suelda el robot de soldadura y la estación de calidad la mide. Cada movimiento ocurre a la hora de un dato real (ciclos de los robots y de la CNC, llegada de piezas, resultado de la inspección). La animación va unos segundos por detrás de la simulación, para dibujar solo lo que ya ha ocurrido.
+  - Los problemas se ven en el equipo que los causa (halo y bocadillo con el código de alarma): averías, microparadas, fuga de aire, presión baja, fallo del inversor, exceso de potencia y la avería anunciada del robot de soldadura. La línea muestra un cartel cuando está parada, en mantenimiento o en cambio de formato.
+  - A partir de ×30, un ciclo dura menos de un segundo: el proceso se muestra con ciclos representativos, más lentos, para poder seguirlo. Estados y valores siguen siendo los reales.
+- **Ficha de cada equipo** (pulsa el equipo en el esquema): dibujo animado, indicadores, toda su telemetría con los nombres de campo tal como llegan en los datos, evolución en vivo de hasta tres campos (también como tabla), eventos recientes, **cómo leer sus datos** (servidor, puerto y topics MQTT para Node-RED, y carpetas de sus ficheros) e incidencias que se le pueden provocar: avería o microparada (PLC, robots y CNC), fuga de aire (compresor) y fallo del inversor (fotovoltaica).
+- **Producción:** estado de cada línea, orden de fabricación en curso, cronología de estados de la última hora, OEE del turno con sus cuentas, cotas fuera de tolerancia, últimas inspecciones y órdenes cerradas con sus materiales y lotes.
+- **Energía:** flujo de energía entre la red, el contador general, la fotovoltaica, los cuadros y los equipos; tarifa del día por horas; costes; quién consume ahora; evolución en vivo y de dónde sacar la curva cuartohoraria.
+- **Datos y salidas:** qué equipos se envían (los demás se siguen simulando, pero no se publican), qué salidas se usan (MQTT, JSONL, logs y curva CSV), **dato sucio** (nulos, valores absurdos, duplicados, fechas mal formadas…, para practicar la limpieza) y los últimos mensajes tal como se envían.
+
+| Producción y calidad | Energía (tema oscuro) |
+|---|---|
+| ![Producción: estado de la línea, orden, OEE y cronología de estados](docs/img/interfaz-produccion.png) | ![Energía: indicadores de tarifa y coste, y flujo de energía](docs/img/interfaz-energia.png) |
+
+El OEE y el avance de la orden en curso los calcula la web: no están en los datos que publica el simulador. La web solo lee la simulación; usarla no cambia los datos generados.
+
+El esquema de la planta se dibuja a partir de `simulador/web/static/plano.json` (posición de cada equipo); un equipo que no esté en el plano aparece igualmente, colocado en su zona. Los dibujos de cada tipo de equipo están en `simulador/web/static/js/equipos/`.
 
 ## Uso sin Docker
 
@@ -219,7 +231,7 @@ simulador-planta/
 │   ├── equipos/       PLC, robot, CNC, inspección, MES, compresor, servicios, medidores de energía
 │   ├── salidas/       jsonl, curva_csv, logs, mqtt
 │   ├── textos/        generador de partes y notas de turno
-│   └── web/           FastAPI + página HTML
+│   └── web/           FastAPI (api.py, observador.py) y la interfaz en static/ (HTML, CSS y JavaScript sin dependencias)
 └── tests/
 ```
 
@@ -227,17 +239,19 @@ simulador-planta/
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest -q
+python -m pytest -q                  # todo (unos 60 s)
+python -m pytest -q -m "not lento"   # sin el histórico completo de 30 días
 ```
 
-**Resultado esperado:** `12 passed`.
+**Resultado esperado:** `22 passed` (o `21 passed, 1 deselected` sin el lento). Las pruebas de reproducibilidad comprueban que el histórico de referencia (`historico --desde 2026-09-01 --dias 30`) da siempre las mismas cifras y los mismos ficheros, también con la web conectada.
 
 ## Problemas frecuentes
 
 - **`address already in use` al arrancar:** el puerto está ocupado. Consulta [Si el puerto 8000 o el 1883 está ocupado](#si-el-puerto-8000-o-el-1883-está-ocupado).
 - **No puedo borrar `datos/` (Linux):** los ficheros los crea el contenedor como `root`. Bórralos con `docker compose run --rm --no-deps --entrypoint sh simulador -c 'rm -rf /app/datos/*'`. Otra opción es generar el histórico de nuevo con `--sobrescribir`.
 - **`La carpeta datos ya tiene datos`:** usa `--sobrescribir` o elige otra carpeta con `--salida`.
-- **La web dice «Todavía no hay datos de ese equipo»:** espera unos segundos a la primera muestra.
+- **La ficha de un equipo dice «Todavía no ha llegado la primera muestra»:** espera unos segundos.
+- **La web dice «Sin conexión con el simulador»:** el simulador se ha parado o no está en modo vivo. Mira `docker compose ps` o la terminal donde lo arrancaste.
 
 ## Licencia
 

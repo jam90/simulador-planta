@@ -13,7 +13,7 @@ services:
 
   simulador:
     build: .
-    image: simulador-planta:1.1
+    image: simulador-planta:1.2
     depends_on:
       - mosquitto
     environment:

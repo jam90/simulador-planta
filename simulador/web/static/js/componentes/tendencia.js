@@ -102,7 +102,8 @@ export class Tendencia {
         ? [0, 0.5, 1].map((k) => {
           const tt = this.geo.t0 + k * (this.geo.t1 - this.geo.t0);
           const anc = k === 0 ? "start" : k === 1 ? "end" : "middle";
-          return `<text class="eje" x="${x(tt).toFixed(1)}" y="${ALTO - 3}" text-anchor="${anc}">${esc(hora(tt, false))}</text>`;
+          const conSegundos = this.geo.t1 - this.geo.t0 < 180;      // poco tramo: con segundos, para que no se repitan
+          return `<text class="eje" x="${x(tt).toFixed(1)}" y="${ALTO - 3}" text-anchor="${anc}">${esc(hora(tt, conSegundos))}</text>`;
         }).join("") : "";
       const etiquetas = booleano ? [[0, "false"], [1, "true"]] : lista.map((v) => [v, valor(v)]);
       return `<div class="tend">${cab}
