@@ -35,7 +35,8 @@ function montar(el, ctx, params) {
         <h1>${esc(id)} <span id="ficha-estado"></span></h1>
         <p>${esc(meta.descripcion)}</p>
         <p class="nota"><span data-i18n="ficha.tipo"></span> <span class="mono">${esc(meta.tipo)}</span>
-          · <span data-i18n="ficha.linea"></span> <span class="mono">${esc(meta.linea)}</span>
+          · <span>${esc(t(ctx.plano.lineas.some((l) => l.id === meta.linea) ? "ficha.linea" : "ficha.zona"))}</span>
+          <span class="mono">${esc(meta.linea)}</span>${ctx.plano.zonas_desc?.[meta.linea] ? ` (${esc(ctx.plano.zonas_desc[meta.linea])})` : ""}
           ${t(`tipo.${meta.tipo}`) !== meta.descripcion ? `· ${esc(t(`tipo.${meta.tipo}`))}` : ""}</p>
       </div>
       <label class="interruptor enviar"><input type="checkbox" id="ficha-publicar"><span data-i18n="ficha.enviar"></span></label>

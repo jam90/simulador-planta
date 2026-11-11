@@ -38,19 +38,29 @@ function autocolocar(plano) {
   }
 }
 
-function htmlEquipo(e, pos, conEtiqueta, i = 0) {
+/** Dibujo de un equipo. Se pulsa con el ratón; para el teclado y los lectores, el enlace es su nombre. */
+function htmlEquipo(e, pos, i = 0) {
   const mod = modulo(e.tipo);
-  const [w, h] = mod.caja;
+  return `<a href="#/equipo/${esc(e.id)}" class="eq-enlace" tabindex="-1" aria-hidden="true">
+    <g class="eq-sin tipo-${esc(e.tipo)}" data-id="${esc(e.id)}" data-copia="${i}" transform="translate(${pos.x} ${pos.y})">
+      <title>${esc(`${e.id} · ${e.descripcion}`)}</title>${mod.icono(e)}</g></a>`;
+}
+
+/** Nombre y valor corto de un equipo: es el enlace que recibe el foco del teclado. */
+function htmlEtiqueta(e) {
+  const pos = e.posicion;
+  const [w, h] = modulo(e.tipo).caja;
   const etiqueta = pos.etiqueta || [pos.x + w / 2, pos.y + h + 16];
   const ancla = pos.ancla || "middle";
-  return `<a href="#/equipo/${esc(e.id)}" class="eq-enlace" aria-label="${esc(`${e.id}: ${e.descripcion}`)}">
-    <g class="eq-sin tipo-${esc(e.tipo)}" data-id="${esc(e.id)}" data-copia="${i}" transform="translate(${pos.x} ${pos.y})">
-      <title>${esc(`${e.id} · ${e.descripcion}`)}</title>${mod.icono(e)}</g>
-    ${conEtiqueta ? `<g class="etiqueta" data-etiqueta="${esc(e.id)}">
-      <text class="nombre-eq" x="${etiqueta[0]}" y="${etiqueta[1]}" text-anchor="${ancla}">${esc(e.id)}</text>
-      <text class="clave-eq" data-clave="${esc(e.id)}" x="${etiqueta[0]}" y="${etiqueta[1] + 14}" text-anchor="${ancla}"></text>
-    </g>` : ""}
-  </a>`;
+  return `<a href="#/equipo/${esc(e.id)}" class="etiqueta-foco" data-foco="${esc(e.id)}" aria-label="${esc(`${e.id}: ${e.descripcion}`)}">
+    <g class="etiqueta"><text class="nombre-eq" x="${etiqueta[0]}" y="${etiqueta[1]}" text-anchor="${ancla}">${esc(e.id)}</text>
+      <text class="clave-eq" data-clave="${esc(e.id)}" x="${etiqueta[0]}" y="${etiqueta[1] + 14}" text-anchor="${ancla}"></text></g></a>`;
+}
+
+/** Orden de lectura (y del tabulador): por zonas y, dentro de cada una, de izquierda a derecha. */
+function ordenLectura(plano) {
+  const zona = (e) => { const k = (plano.zonas || []).findIndex((z) => z.id === e.linea); return k < 0 ? 99 : k; };
+  return [...plano.equipos].sort((a, b) => zona(a) - zona(b) || a.posicion.x - b.posicion.x);
 }
 
 function htmlFondo(plano) {
@@ -87,9 +97,9 @@ export class Sinoptico {
     // Detrás de todo, las luminarias (su luz no debe tapar a nadie)
     const detras = p.equipos.filter((e) => e.posicion.capa !== "frente")
       .sort((a, b) => (b.tipo === "iluminacion") - (a.tipo === "iluminacion"));
-    const copias = (e) => [e.posicion, ...(e.posicion.repetir || []).map(([x, y]) => ({ ...e.posicion, x, y, etiqueta: null }))]
-      .map((pos, i) => htmlEquipo(e, pos, i === 0, i)).join("");
-    contenedor.innerHTML = `<svg class="sv sinoptico" viewBox="0 0 ${p.lienzo[0]} ${p.lienzo[1]}" role="img"
+    const copias = (e) => [e.posicion, ...(e.posicion.repetir || []).map(([x, y]) => ({ ...e.posicion, x, y }))]
+      .map((pos, i) => htmlEquipo(e, pos, i)).join("");
+    contenedor.innerHTML = `<svg class="sv sinoptico" viewBox="0 0 ${p.lienzo[0]} ${p.lienzo[1]}" role="group"
         aria-label="${esc(t("portada.sinoptico_aria"))}">${DEFS}
       ${htmlFondo(p)}
       ${(p.tuberias || []).map((tb) => `<polyline class="tuberia" data-tuberia="${esc(tb.equipo)}" points="${tb.puntos.map((q) => q.join(",")).join(" ")}"/>`).join("")}
@@ -101,9 +111,17 @@ export class Sinoptico {
         <circle r="11"/><text y="4" text-anchor="middle">${q.n}</text></g>`)).join("")}
       <g class="avisos-linea">${(p.cintas || []).map((c) => `<g class="aviso-linea" data-aviso-linea="${esc(c.linea)}"
           transform="translate(${(tramos(c)[0][0] + tramos(c).at(-1)[1]) / 2} ${c.y - 190})"></g>`).join("")}</g>
+      <g class="etiquetas">${ordenLectura(p).map(htmlEtiqueta).join("")}</g>
       <g class="bocadillos" data-p="bocadillos"></g>
     </svg>`;
     this.svg = contenedor.querySelector("svg");
+    // Foco del teclado en un nombre: se resalta su equipo
+    const marcar = (ev, si) => {
+      const id = ev.target.closest?.("[data-foco]")?.dataset.foco;
+      if (id) for (const n of this.nodos[id] || []) n.classList.toggle("enfocado", si);
+    };
+    this.svg.addEventListener("focusin", (ev) => marcar(ev, true));
+    this.svg.addEventListener("focusout", (ev) => marcar(ev, false));
     this.nodos = {};
     for (const g of this.svg.querySelectorAll(".eq-sin")) (this.nodos[g.dataset.id] ||= []).push(g);
     // Con «proceso» en el plano, cada pieza sigue el recorrido de la célula; si no, un flujo genérico

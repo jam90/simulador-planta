@@ -100,7 +100,9 @@ export default {
       { titulo: t("dest.ciclos_total"), valor: num(v.ciclos_total, 0) },
       { titulo: t("dest.potencia"), valor: num(v.potencia_kw, 2), unidad: "kW" },
     ];
-    if ("pinza_cerrada" in v) lista.push({ titulo: "pinza_cerrada", valor: String(v.pinza_cerrada) });
+    if ("pinza_cerrada" in v) {
+      lista.push({ titulo: t("dest.pinza"), valor: t(v.pinza_cerrada ? "dest.cerrada" : "dest.abierta"), pie: `pinza_cerrada: ${v.pinza_cerrada}` });
+    }
     lista.push({ titulo: t("dest.temp_max_motor"), unidad: "°C",
       valor: num(Math.max(...[1, 2, 3, 4, 5, 6].map((i) => v[`temp_motor_eje${i}_c`] ?? -Infinity)), 1) });
     return lista;

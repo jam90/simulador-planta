@@ -115,7 +115,7 @@ function dibujarFlujo() {
     return e.tipo === "red" ? `<g class="nodo-flujo red">${cuerpo}</g>`
       : `<a href="#/equipo/${esc(e.id)}" class="nodo-flujo" data-nodo="${esc(e.id)}"><title>${esc(`${e.id} · ${e.descripcion}`)}</title>${cuerpo}</a>`;
   };
-  cont.innerHTML = `<svg class="flujo" viewBox="0 0 ${W} ${d.H}" role="img" aria-label="${esc(t("ener.flujo"))}">
+  cont.innerHTML = `<svg class="flujo" viewBox="0 0 ${W} ${d.H}" role="group" aria-label="${esc(t("ener.flujo"))}">
     ${d.enlaces.map((en) => `<path class="enlace-fondo" d="${camino(en)}"/>
       <path class="enlace ${en[2]}" data-enlace="${esc(en[0])}>${esc(en[1])}" d="${camino(en)}"/>`).join("")}
     ${Object.values(d.nodos).map(nodo).join("")}
@@ -143,7 +143,7 @@ function actualizarFlujo(ctx) {
     const kw = id === "__red" ? neto : id === "__barra" ? consumo : potencia(ctx, id);
     const estado = ctx.vista.equipos[id]?.estado;
     const s = kw === null ? "–" : id === "__red" ? `${t(neto < 0 ? "dest.vende" : "dest.compra")} ${num(Math.abs(kw), 1)} kW`
-      : estado === "FALLO" ? `${num(kw, 1)} kW · FALLO` : `${num(kw, 1)} kW`;
+      : estado === "FALLO" ? `${num(kw, 1)} kW · FALLO` : id === "__barra" ? t("ener.consumo_kw", { kw: num(kw, 1) }) : `${num(kw, 1)} kW`;
     if (el.textContent !== s) el.textContent = s;
   }
   for (const el of raiz.querySelectorAll("[data-enlace]")) {

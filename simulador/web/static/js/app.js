@@ -98,11 +98,13 @@ function pintarCabecera() {
   $("#cab-pausa").hidden = !v.pausado;
   texto($("#cab-turno"), nombreTurno(v.turno));
   poner($("#cab-lineas"), v.lineas.map((l) =>
-    `<div class="dato-cab"><small>${esc(l.id)} · ${esc(l.referencia)}</small><b>${insignia(l.estado)}</b></div>`).join(""));
+    `<div class="dato-cab" title="${esc(t("cab.linea_ayuda", { linea: l.id, ref: l.referencia }))}"><small>${esc(l.id)} · ${esc(l.referencia)}</small><b>${insignia(l.estado)}</b></div>`).join(""));
   const sel = $("#acelerar");
   if (document.activeElement !== sel) {
     if (![...sel.options].some((o) => Number(o.value) === e.acelerar)) {
-      sel.append(new Option(`×${e.acelerar}`, String(e.acelerar)));
+      const op = new Option(`×${e.acelerar}`, String(e.acelerar));
+      const sig = [...sel.options].find((o) => Number(o.value) > e.acelerar);
+      sel.insertBefore(op, sig || null);
     }
     sel.value = String(e.acelerar);
   }
@@ -130,7 +132,7 @@ function pintarAverias(e) {
     </div>`;
   }).join("");
   // Clave estable: solo se repinta si cambia la lista (la cuenta atrás va aparte)
-  const clave = e.averias.map((a) => `${a.equipo}${a.codigo}${a.restante_real_s === null}`).join("|") + idioma();
+  const clave = e.averias.map((a) => `${a.equipo}${a.codigo}${a.restante_real_s === null}`).join("|") + idioma() + e.acelerar;
   const banda = $("#banda-averias");
   if (banda.dataset.clave !== clave) { banda.innerHTML = contenido; banda.dataset.clave = clave; }
 }

@@ -13,9 +13,10 @@ function montar(el, ctx) {
     <div class="kpis" id="kpis"></div>
     <section class="tarjeta tarjeta-sinoptico">
       <header><h2 data-i18n="portada.planta_vivo"></h2>
-        <span class="nota" id="portada-modo"></span>
+
         <div class="leyenda">${["PRODUCCION", "ARRANQUE", "ESPERA", "MICROPARADA", "AVERIA", "MANTENIMIENTO", "CAMBIO_FORMATO", "PARADA"]
           .map((e) => insignia(e)).join("")}</div></header>
+      <p class="nota aviso-modo" id="portada-modo" hidden></p>
       <p class="nota solo-movil" data-i18n="portada.desliza"></p>
       <div id="sinoptico" class="contenedor-sinoptico"></div>
       ${(ctx.plano.cintas || []).some((c) => c.pasos?.length) ? `<ol class="pasos-leyenda">
@@ -42,8 +43,9 @@ function desmontar() {
   raiz = null;
 }
 
-function tarjeta(titulo, valor, pie = "", extra = "", clase = "") {
-  return `<div class="kpi ${clase}"><small>${esc(titulo)}</small><b>${valor}</b>${extra}${pie ? `<em>${pie}</em>` : ""}</div>`;
+function tarjeta(titulo, valor, pie = "", extra = "", clase = "", enlace = "") {
+  const dentro = `<small>${esc(titulo)}</small><b>${valor}</b>${extra}${pie ? `<em>${pie}</em>` : ""}`;
+  return enlace ? `<a class="kpi kpi-enlace ${clase}" href="${enlace}">${dentro}</a>` : `<div class="kpi ${clase}">${dentro}</div>`;
 }
 
 function barraOee(nombre, x) {
@@ -58,7 +60,7 @@ function pintarKpis(ctx) {
   for (const l of ctx.vista.lineas) {
     const kl = k.lineas[l.id];
     const turno = kl ? `${nombreTurno(kl.turno)}${kl.en_curso ? "" : ` · ${t("portada.terminado")}`}` : "–";
-    const desde = kl && !kl.completo ? `${t("portada.desde")} ${hora(kl.desde, false)}` : "";
+    const desde = kl && !kl.completo ? t("portada.desde", { h: hora(kl.desde, false) }) : "";
     partes.push(tarjeta(`${t("portada.piezas_turno")} · ${l.id}`, kl ? num(kl.piezas, 0) : "–",
       `${esc(turno)}${desde ? " · " + esc(desde) : ""}`,
       kl ? `<span class="okno"><span class="ok">OK ${num(kl.piezas_ok, 0)}</span> <span class="nok">NOK ${num(kl.piezas_nok, 0)}</span>
@@ -73,7 +75,7 @@ function pintarKpis(ctx) {
     partes.push(tarjeta(t("portada.oee"), oee?.oee === null || oee?.oee === undefined ? "–" : pct(oee.oee, 0),
       esc(t("portada.oee_pie")),
       `<div class="factores">${barraOee(t("oee.disponibilidad"), oee?.disponibilidad)}${barraOee(t("oee.rendimiento"), oee?.rendimiento)}${barraOee(t("oee.calidad"), oee?.calidad)}</div>`,
-      "kpi-oee"));
+      "kpi-oee", "#/produccion"));
   }
   // Potencias del mismo instante que el sinóptico (vista); periodo y coste, de los indicadores
   const en = k.energia;
@@ -85,9 +87,9 @@ function pintarKpis(ctx) {
     esc(t("portada.energia_pie")),
     `<span class="energia-lineas"><span>☀ ${num(generacion, 1)} kW</span>
       <span class="${neto < 0 ? "ok" : ""}">${esc(t(neto < 0 ? "dest.vende" : "dest.compra"))} ${num(Math.abs(neto ?? 0), 1)} kW</span></span>`));
-  partes.push(tarjeta(t("portada.tarifa"), en.periodo ? `${esc(en.periodo)} <span>${num(en.precio_eur_kwh, 2)} €/kWh</span>` : "–",
+  partes.push(tarjeta(t("portada.tarifa"), en.periodo ? `<span class="sigla" title="${esc(t("dest.periodo_ayuda"))}">${esc(en.periodo)}</span> <span>${num(en.precio_eur_kwh, 2)} €/kWh</span>` : "–",
     esc(t("portada.tarifa_pie")),
-    en.turno ? `<span>${esc(t("portada.coste_turno"))}: <strong>${num(en.turno.coste_eur, 2)} €</strong> · ${num(en.turno.importada_kwh, 1)} kWh</span>` : ""));
+    en.turno ? `<span>${esc(t("portada.coste_turno"))}: <strong>${num(en.turno.coste_eur, 2)} €</strong> · ${esc(t("portada.kwh_comprados", { kwh: num(en.turno.importada_kwh, 1) }))}</span>` : ""));
   poner($("#kpis", raiz), partes.join(""));
 }
 
@@ -97,7 +99,7 @@ function pintarIncidencias(ctx) {
   const items = [];
   for (const a of e.averias) {
     items.push(`<li class="sev-error"><b>${esc(t("estado.AVERIA"))}</b> <a href="#/equipo/${esc(a.equipo)}">${esc(a.equipo)}</a>
-      <span class="mono">${esc(a.codigo)}</span><span class="msg">${esc(a.descripcion)} · ${esc(t("portada.hasta"))} ${esc(a.fin_local)}</span></li>`);
+      <span class="mono">${esc(a.codigo)}</span><span class="msg">${esc(a.descripcion)} · ${esc(t("portada.hasta", { h: a.fin_local }))}</span></li>`);
   }
   for (const l of v.lineas) {
     if (l.estado === "MICROPARADA") {
@@ -115,7 +117,7 @@ function pintarIncidencias(ctx) {
     }
   }
   poner($("#portada-incidencias", raiz), items.length ? `<ul class="eventos">${items.join("")}</ul>`
-    : `<p class="nota">${esc(t("portada.sin_incidencias"))}</p>`);
+    : `<p class="nota">${esc(t("portada.sin_incidencias"))} ${esc(t("portada.como_provocar"))}</p>`);
 }
 
 async function pedirAvisos() {
@@ -136,7 +138,9 @@ function actualizar(ctx) {
   sinoptico?.actualizar(ctx);
   pintarKpis(ctx);
   pintarIncidencias(ctx);
-  poner($("#portada-modo", raiz), ctx.vista.acelerar >= 30 ? esc(t("portada.modo_rapido", { x: ctx.vista.acelerar })) : "");
+  const modo = $("#portada-modo", raiz);
+  modo.hidden = ctx.vista.acelerar < 30;
+  poner(modo, modo.hidden ? "" : esc(t("portada.modo_rapido", { x: ctx.vista.acelerar })));
 }
 
 export default { montar, actualizar, desmontar, titulo: () => "nav.planta" };

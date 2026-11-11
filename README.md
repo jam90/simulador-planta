@@ -154,7 +154,7 @@ En http://localhost:8000 (solo en modo vivo). En español, euskera e inglés, co
 - **Planta:** esquema animado de la nave con todos los equipos e indicadores del turno (piezas, orden de fabricación en curso, OEE aproximado, consumo y tarifa).
   - La animación sigue el proceso de la célula: el robot de manipulación deja la pieza en el palé de carga de la CNC, que es de doble palé; al terminar el mecanizado anterior se cambian los palés; la pieza mecanizada sale a la cinta, la suelda el robot de soldadura y la estación de calidad la mide. Cada movimiento ocurre a la hora de un dato real (ciclos de los robots y de la CNC, llegada de piezas, resultado de la inspección). La animación va unos segundos por detrás de la simulación, para dibujar solo lo que ya ha ocurrido.
   - Los problemas se ven en el equipo que los causa (halo y bocadillo con el código de alarma): averías, microparadas, fuga de aire, presión baja, fallo del inversor, exceso de potencia y la avería anunciada del robot de soldadura. La línea muestra un cartel cuando está parada, en mantenimiento o en cambio de formato.
-  - A partir de ×30, un ciclo dura menos de un segundo: el proceso se muestra con ciclos representativos, más lentos, para poder seguirlo. Estados y valores siguen siendo los reales.
+  - A partir de ×30, un ciclo de máquina dura poco más de un segundo real o menos: el proceso se muestra con ciclos representativos, más lentos, para poder seguirlo. Estados y valores siguen siendo los reales.
 - **Ficha de cada equipo** (pulsa el equipo en el esquema): dibujo animado, indicadores, toda su telemetría con los nombres de campo tal como llegan en los datos, evolución en vivo de hasta tres campos (también como tabla), eventos recientes, **cómo leer sus datos** (servidor, puerto y topics MQTT para Node-RED, y carpetas de sus ficheros) e incidencias que se le pueden provocar: avería o microparada (PLC, robots y CNC), fuga de aire (compresor) y fallo del inversor (fotovoltaica).
 - **Producción:** estado de cada línea, orden de fabricación en curso, cronología de estados de la última hora, OEE del turno con sus cuentas, cotas fuera de tolerancia, últimas inspecciones y órdenes cerradas con sus materiales y lotes.
 - **Energía:** flujo de energía entre la red, el contador general, la fotovoltaica, los cuadros y los equipos; tarifa del día por horas; costes; quién consume ahora; evolución en vivo y de dónde sacar la curva cuartohoraria.
@@ -164,7 +164,7 @@ En http://localhost:8000 (solo en modo vivo). En español, euskera e inglés, co
 |---|---|
 | ![Producción: estado de la línea, orden, OEE y cronología de estados](docs/img/interfaz-produccion.png) | ![Energía: indicadores de tarifa y coste, y flujo de energía](docs/img/interfaz-energia.png) |
 
-El OEE y el avance de la orden en curso los calcula la web: no están en los datos que publica el simulador. La web solo lee la simulación; usarla no cambia los datos generados.
+El OEE y el avance de la orden en curso los calcula la web: no están en los datos que publica el simulador. Mirar la web no cambia los datos: solo los lee. Lo que sí cambia lo que genera el modo vivo son las acciones que se hacen desde ella (incidencias, velocidad, pausa, equipos y salidas). Los históricos generados por línea de comandos no se ven afectados.
 
 El esquema de la planta se dibuja a partir de `simulador/web/static/plano.json` (posición de cada equipo); un equipo que no esté en el plano aparece igualmente, colocado en su zona. Los dibujos de cada tipo de equipo están en `simulador/web/static/js/equipos/`.
 
@@ -221,7 +221,7 @@ Con Docker, la carpeta `config/` se monta en el contenedor: basta editar el YAML
 simulador-planta/
 ├── docker-compose.yml, Dockerfile, requirements.txt
 ├── config/            planta.yaml, planta-sucio.yaml, mosquitto.conf
-├── docs/              formato-datos.md; img/ (animación del README y su script)
+├── docs/              formato-datos.md; img/ (animación y capturas del README, y el script de la animación)
 ├── simulador/
 │   ├── __main__.py    línea de comandos
 │   ├── motor.py       bucle histórico / vivo y reparto a las salidas

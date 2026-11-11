@@ -54,6 +54,10 @@
 /* Enlaces del sinóptico */
 .sinoptico .eq-enlace { cursor: pointer; }
 .sinoptico .eq-enlace:hover .zona-clic, .sinoptico .eq-enlace:focus-visible .zona-clic { stroke: var(--azul); stroke-dasharray: 4 3; }
+.sinoptico .eq-sin.enfocado .zona-clic { stroke: var(--azul); stroke-width: 3; stroke-dasharray: none;
+  fill: color-mix(in srgb, var(--azul) 10%, transparent); }
+.sinoptico .etiqueta-foco { outline: none; }
+.sinoptico .etiqueta-foco:focus-visible .nombre-eq { fill: var(--azul); text-decoration: underline; }
 .sinoptico .eq-enlace:focus { outline: none; }
 .sinoptico .nombre-eq { font-size: 12.5px; font-weight: 700; fill: var(--texto); }
 .sinoptico .clave-eq { font: 11px var(--mono); fill: var(--suave); }
@@ -175,7 +179,7 @@
 
 /* Pasos del proceso numerados (los explica la leyenda de la portada) */
 .sinoptico .paso circle { fill: var(--azul); stroke: var(--panel); stroke-width: 2; }
-.sinoptico .paso text { font: 700 12px var(--fuente); fill: #fff; }
+.sinoptico .paso text { font: 700 12px var(--fuente); fill: var(--paso-txt); }
 
 /* Bocadillos de problema y cartel de línea */
 .bocadillo rect, .bocadillo path { fill: var(--panel); stroke: var(--e-averia); stroke-width: 2; }

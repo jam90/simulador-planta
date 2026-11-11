@@ -154,7 +154,7 @@ function pintarRegistros() {
       <h3>${esc(t("prod.nok_por_cota"))}</h3>
       <div class="barras-cota">${Object.entries(porCota).map(([c, x]) => `<div class="barra-cota">
         <span class="mono">${esc(c)}</span><i><b style="width:${(100 * Math.min(1, x.nok / x.total / LLENA)).toFixed(1)}%"></b></i>
-        <span class="num">${num(x.nok, 0)} (${num(100 * x.nok / x.total, 1)} %)</span></div>`).join("")}</div>
+        <span class="num">${num(x.nok, 0)} (${num(100 * x.nok / x.total, 1)} %)</span></div>`).join("")}</div>
       <p class="nota">${esc(t("prod.nok_ayuda"))}</p>
       ${htmlInspecciones(ins.slice(0, 3))}` : `<p class="nota">${esc(t("ficha.sin_inspecciones"))}</p>`);
     const ordenes = (r.ordenes || []).slice(0, 8);

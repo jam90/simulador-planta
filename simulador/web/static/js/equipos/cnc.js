@@ -72,7 +72,7 @@ export default {
   destacados(d) {
     const v = d.valores;
     return [
-      { titulo: "rpm_husillo", valor: num(v.rpm_husillo, 0), unidad: "rpm" },
+      { titulo: t("dest.rpm"), valor: num(v.rpm_husillo, 0), unidad: "rpm", pie: "rpm_husillo" },
       { titulo: t("dest.desgaste"), valor: num(v.desgaste_herramienta_pct, 1), unidad: "%",
         pie: v.herramienta_id, clase: v.desgaste_herramienta_pct > 80 ? "alerta" : "" },
       { titulo: t("dest.refrigerante"), valor: num(v.nivel_refrigerante_pct, 1), unidad: "%" },
