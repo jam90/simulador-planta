@@ -59,7 +59,8 @@
 .titulo-ficha { align-items: center; gap: 14px 18px; }
 .titulo-ficha .volver { flex-basis: 100%; font-size: 13px; }
 .titulo-ficha .volver::before { content: "← "; }
-.titulo-ficha .ilustracion { width: 96px; height: 96px; object-fit: contain; flex: none; }
+.titulo-ficha .ilustracion { width: 136px; height: 136px; object-fit: contain; flex: none; margin: -12px 0; }
+@media (max-width: 560px) { .titulo-ficha .ilustracion { width: 88px; height: 88px; margin: 0; } }
 .titulo-ficha .nombre { flex: 1; min-width: 240px; }
 .titulo-ficha .nombre h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .titulo-ficha .nombre p { margin: 2px 0; }
