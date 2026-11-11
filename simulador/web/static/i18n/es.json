@@ -117,7 +117,7 @@
   "ficha.enviar": "Enviar sus datos",
   "ficha.dibujo_ayuda": "Animación ilustrativa: se mueve según el estado y los ciclos reales del equipo, unos segundos por detrás de la simulación (para dibujar solo lo que ya ha pasado). El estado de arriba y la telemetría van al momento.",
   "ficha.tendencia": "Evolución en vivo",
-  "ficha.tendencia_ayuda": "Últimos minutos, desde que abriste el simulador. El histórico está en los ficheros.",
+  "ficha.tendencia_ayuda": "Hasta los últimos 30 minutos simulados, desde que arrancó el simulador; elige hasta 3 campos. Pasa el ratón por encima para ver los valores. El histórico completo está en los ficheros.",
   "ficha.recientes": "Qué está pasando",
   "ficha.incidencias": "Provocar incidencias",
   "ficha.valores": "Telemetría",
@@ -218,5 +218,10 @@
   "portada.paso1": "Carga: el robot-01 coge la pieza en bruto de la cinta y la deja en el palé de carga de la CNC.",
   "portada.paso2": "Mecanizado: al terminar la pieza anterior, se cambian los palés; la CNC mecaniza y la pieza sale a la cinta.",
   "portada.paso3": "Soldadura: el robot-02 suelda la pieza mecanizada.",
-  "portada.paso4": "Calidad: se miden sus cotas; las buenas van a la caja y las malas, al contenedor de rechazo."
+  "portada.paso4": "Calidad: se miden sus cotas; las buenas van a la caja y las malas, al contenedor de rechazo.",
+  "ficha.ver_tabla": "Ver como tabla",
+  "ficha.campos": "Campos que se muestran (hasta 3)",
+  "ficha.hora": "Hora",
+  "ficha.tendencia_vacia": "Todavía no hay muestras.",
+  "ficha.ver_grafica": "Ver gráfica"
 }

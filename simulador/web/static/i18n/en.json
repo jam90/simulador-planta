@@ -117,7 +117,7 @@
   "ficha.enviar": "Send its data",
   "ficha.dibujo_ayuda": "Illustrative animation: it moves according to the real state and cycles of the equipment, a few seconds behind the simulation (so that it only draws what has already happened). The state at the top and the telemetry are up to the moment.",
   "ficha.tendencia": "Live trend",
-  "ficha.tendencia_ayuda": "Last few minutes, since you opened the simulator. The history is in the files.",
+  "ficha.tendencia_ayuda": "Up to the last 30 simulated minutes, since the simulator started; choose up to 3 fields. Hover to see the values. The full history is in the files.",
   "ficha.recientes": "What is happening",
   "ficha.incidencias": "Cause incidents",
   "ficha.valores": "Telemetry",
@@ -218,5 +218,10 @@
   "portada.paso1": "Loading: robot-01 picks the raw part from the conveyor and places it on the CNC loading pallet.",
   "portada.paso2": "Machining: when the previous part is finished, the pallets swap; the CNC machines the part and it comes out onto the conveyor.",
   "portada.paso3": "Welding: robot-02 welds the machined part.",
-  "portada.paso4": "Quality: its dimensions are measured; good parts go to the box and bad ones to the reject bin."
+  "portada.paso4": "Quality: its dimensions are measured; good parts go to the box and bad ones to the reject bin.",
+  "ficha.ver_tabla": "View as table",
+  "ficha.campos": "Fields shown (up to 3)",
+  "ficha.hora": "Time",
+  "ficha.tendencia_vacia": "No samples yet.",
+  "ficha.ver_grafica": "View chart"
 }

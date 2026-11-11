@@ -8,10 +8,13 @@ import { actualizarIncidencias, escucharIncidencias, htmlIncidencias } from "../
 import { modulo } from "../equipos/index.js";
 import { PRODUCE } from "../equipos/svg.js";
 import * as reloj from "../reloj.js";
+import { Tendencia } from "../componentes/tendencia.js";
 import { estadoEn } from "../reloj.js";
 
 let raiz = null, id = null, meta = null, mod = null, nodoDibujo = null, grupo = null, datos = null;
 let temporizador = null, claveSalidas = "", marco = null, estadoPintado = null;
+let tendencia = null, camposTend = null, temporizadorTend = null;
+const MAX_CAMPOS = 3;
 
 function montar(el, ctx, params) {
   raiz = el;
@@ -42,8 +45,10 @@ function montar(el, ctx, params) {
           <p class="nota" data-i18n="ficha.dibujo_ayuda"></p></section>
         <div id="ficha-destacados" class="destacados"></div>
         <section class="tarjeta" id="ficha-tendencia-tarjeta" hidden>
-          <header><h2 data-i18n="ficha.tendencia"></h2><div id="ficha-campos" class="campos"></div></header>
-          <div id="ficha-tendencia"></div>
+          <header><h2 data-i18n="ficha.tendencia"></h2>
+            <button id="ficha-ver-tabla" class="icono" aria-pressed="false" data-i18n="ficha.ver_tabla"></button></header>
+          <div id="ficha-campos" class="campos" role="group" data-i18n-aria="ficha.campos"></div>
+          <div id="ficha-tendencia" class="tendencia"></div>
           <p class="nota" data-i18n="ficha.tendencia_ayuda"></p>
         </section>
         <section class="tarjeta">
@@ -76,6 +81,10 @@ function montar(el, ctx, params) {
   mod.montarFicha?.(el, meta, ctx);
   pedirRecientes();
   temporizador = setInterval(pedirRecientes, 3000);
+  tendencia = new Tendencia($("#ficha-tendencia", el));
+  camposTend = null;
+  temporizadorTend = setInterval(pedirTendencia, 5000);
+  el.addEventListener("click", alPulsarTendencia);
   estadoPintado = null;
   marco = requestAnimationFrame(bucle);
 }
@@ -107,6 +116,9 @@ function palpador(d, l, tm) {
 }
 
 function desmontar() {
+  clearInterval(temporizadorTend);
+  tendencia?.destruir();
+  tendencia = null;
   cancelAnimationFrame(marco);
   clearInterval(temporizador);
   mod?.desmontarFicha?.();
@@ -146,6 +158,19 @@ function actualizar(ctx) {
     ? Object.entries(v.valores).map(([k, x]) => `<tr><td class="mono">${esc(k)}</td><td class="num mono">${esc(valor(x))}</td></tr>`).join("")
     : `<tr><td class="nota">${esc(t(meta.tipo === "mes" ? "ficha.sin_telemetria_mes" : "ficha.sin_telemetria"))}</td></tr>`);
 
+  // Evolución en vivo: los campos numéricos (y booleanos) del equipo; por defecto, los del tipo
+  if (v.valores && camposTend === null) {
+    const numericos = Object.keys(v.valores).filter((k) => typeof v.valores[k] === "number" || typeof v.valores[k] === "boolean");
+    if (numericos.length) {
+      const pref = (mod.tendencia || []).filter((k) => numericos.includes(k));
+      camposTend = pref.length ? pref : numericos.slice(0, 2);
+      $("#ficha-tendencia-tarjeta", raiz).hidden = false;
+      $("#ficha-campos", raiz).innerHTML = numericos.map((k) =>
+        `<button data-campo="${esc(k)}" aria-pressed="${camposTend.includes(k)}">${esc(k)}</button>`).join("");
+      pedirTendencia();
+    }
+  }
+
   // Incidencias
   const inc = htmlIncidencias(eq);
   const tarjetaInc = $("#ficha-inc-tarjeta", raiz);
@@ -167,6 +192,37 @@ function datosEquipo(ctx) {
   const v = ctx.vista.equipos[id];
   return { id, meta, estado: v.estado, estadoActual: v.estado, valores: v.valores || {}, ciclos: v.ciclos,
     avisos: v.avisos, estados: v.estados, linea: ctx.vista.lineas.find((l) => l.id === meta.linea) };
+}
+
+async function pedirTendencia() {
+  if (!raiz || !camposTend?.length) return;
+  try {
+    const r = await api(`/api/tendencia/${encodeURIComponent(id)}?campos=${camposTend.map(encodeURIComponent).join(",")}&n=360`,
+      undefined, { silencioso: true });
+    if (raiz && tendencia) tendencia.poner(r, camposTend);
+  } catch { /* se reintenta */ }
+}
+
+function alPulsarTendencia(ev) {
+  const b = ev.target.closest("button[data-campo], #ficha-ver-tabla");
+  if (!b) return;
+  if (b.id === "ficha-ver-tabla") {
+    const si = b.getAttribute("aria-pressed") !== "true";
+    b.setAttribute("aria-pressed", String(si));
+    b.textContent = t(si ? "ficha.ver_grafica" : "ficha.ver_tabla");
+    tendencia.verTabla(si);
+    return;
+  }
+  const campo = b.dataset.campo;
+  if (camposTend.includes(campo)) {
+    if (camposTend.length === 1) return;                 // al menos uno
+    camposTend = camposTend.filter((c) => c !== campo);
+  } else {
+    if (camposTend.length >= MAX_CAMPOS) camposTend.shift();
+    camposTend.push(campo);
+  }
+  for (const x of raiz.querySelectorAll("button[data-campo]")) x.setAttribute("aria-pressed", String(camposTend.includes(x.dataset.campo)));
+  pedirTendencia();
 }
 
 async function pedirRecientes() {

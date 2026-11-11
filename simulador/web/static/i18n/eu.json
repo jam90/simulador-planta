@@ -117,7 +117,7 @@
   "ficha.enviar": "Bidali haren datuak",
   "ficha.dibujo_ayuda": "Animazio ilustratiboa: ekipoaren benetako egoeraren eta zikloen arabera mugitzen da, simulazioa baino segundo batzuk atzerago (jada gertatu dena bakarrik marrazteko). Goiko egoera eta telemetria unean bertan doaz.",
   "ficha.tendencia": "Bilakaera zuzenean",
-  "ficha.tendencia_ayuda": "Azken minutuak, simulagailua ireki zenuenetik. Historikoa fitxategietan dago.",
+  "ficha.tendencia_ayuda": "Simulatutako azken 30 minutuak gehienez, simulagailua abiarazi zenetik; aukeratu 3 eremu gehienez. Pasatu sagua gainetik balioak ikusteko. Historiko osoa fitxategietan dago.",
   "ficha.recientes": "Zer gertatzen ari den",
   "ficha.incidencias": "Gorabeherak eragin",
   "ficha.valores": "Telemetria",
@@ -218,5 +218,10 @@
   "portada.paso1": "Karga: robot-01ek pieza gordina zintatik hartzen du eta CNCaren karga-paletan uzten du.",
   "portada.paso2": "Mekanizazioa: aurreko pieza amaitzean, paletak aldatzen dira; CNCak mekanizatzen du eta pieza zintara ateratzen da.",
   "portada.paso3": "Soldadura: robot-02k pieza mekanizatua soldatzen du.",
-  "portada.paso4": "Kalitatea: kotak neurtzen dira; onak kutxara doaz eta txarrak, baztertzeko edukiontzira."
+  "portada.paso4": "Kalitatea: kotak neurtzen dira; onak kutxara doaz eta txarrak, baztertzeko edukiontzira.",
+  "ficha.ver_tabla": "Taula gisa ikusi",
+  "ficha.campos": "Erakusten diren eremuak (3 gehienez)",
+  "ficha.hora": "Ordua",
+  "ficha.tendencia_vacia": "Oraindik ez dago laginik.",
+  "ficha.ver_grafica": "Grafikoa ikusi"
 }
