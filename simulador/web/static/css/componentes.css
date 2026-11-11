@@ -151,3 +151,69 @@ table.ordenes td, table.ordenes th { font-size: 12.5px; }
   .cota { grid-template-columns: 1fr auto; }
   .cota .barra-tol { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* Cabecera de sección con su ilustración */
+.cabecera-seccion { justify-content: space-between; align-items: center; }
+.cabecera-seccion > div { flex: 1; min-width: 260px; }
+.cabecera-seccion h1 { margin-bottom: 4px; }
+.cabecera-seccion img { height: 120px; width: auto; max-width: 42%; object-fit: cover; object-position: center 55%;
+  margin: -14px 0 -8px; }
+@media (max-width: 760px) { .cabecera-seccion img { display: none; } }
+
+/* Producción */
+.bloque-linea { display: grid; gap: 14px; margin-bottom: 26px; }
+.titulo-linea { font-size: 16px; margin: 4px 0 -4px; }
+.estado-grande { font-size: 18px; font-weight: 700; margin: 2px 0 8px; }
+.estado-grande .estado { font-size: 14px; padding: 3px 10px 3px 8px; }
+.kpi-grande { font-size: 34px; font-weight: 750; margin: 0 0 6px; }
+.fila-dato { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--borde); font-size: 13px; }
+.fila-dato span { color: var(--suave); }
+.contenedor-crono { overflow: hidden; }
+.cronologia { display: block; }
+.cronologia .tramo { fill: var(--c, var(--e-parada)); }
+.cronologia .tramo-txt { font: 600 12px var(--fuente); fill: #fff; pointer-events: none; }
+.cronologia .eje, .flujo .eje { font: 10.5px var(--fuente); fill: var(--suave); }
+.leyenda-tiempos { display: flex; gap: 6px 14px; flex-wrap: wrap; margin-top: 6px; font-size: 12.5px; color: var(--suave); }
+.segmentos { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; margin: 6px 0; }
+.segmentos i { background: var(--c, var(--e-parada)); min-width: 2px; }
+.cuentas-oee { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.cuentas-oee li span { display: block; color: var(--suave); font-size: 12.5px; }
+.barras-cota { display: grid; gap: 5px; }
+.barra-cota { display: grid; grid-template-columns: minmax(140px, 1fr) 2fr 36px; gap: 10px; align-items: center; font-size: 12.5px; }
+.barra-cota i, .barra-reparto i { height: 10px; border-radius: 0 4px 4px 0; background: var(--panel-2); overflow: hidden; }
+.barra-cota b { display: block; height: 100%; background: var(--nok); border-radius: 0 4px 4px 0; }
+.barra-cota .num { text-align: right; }
+details.orden { border: 1px solid var(--borde); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; }
+details.orden summary { cursor: pointer; display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+details.orden table { margin-top: 6px; }
+details.orden td.exceso { color: var(--e-microparada); font-weight: 650; }
+
+/* Energía */
+.contenedor-flujo { overflow-x: auto; }
+.flujo { display: block; width: 100%; min-width: 720px; height: auto; }
+.flujo .nodo { fill: var(--panel); stroke: var(--borde); stroke-width: 1.5; }
+.flujo a.nodo-flujo:hover .nodo, .flujo a.nodo-flujo:focus-visible .nodo { stroke: var(--azul); }
+.flujo .red .nodo { fill: var(--panel-2); }
+.flujo .nodo-nombre { font: 600 12.5px var(--fuente); fill: var(--texto); }
+.flujo .nodo-valor { font: 12px var(--mono); fill: var(--suave); }
+.flujo .enlace-fondo { fill: none; stroke: var(--panel-2); stroke-width: 16; stroke-linecap: round; }
+.flujo .enlace { fill: none; stroke: var(--acento); stroke-linecap: round; stroke-dasharray: 2 14;
+  animation: flujo-energia 2s linear infinite; }
+.flujo .enlace.gen { stroke: #e0a400; }
+.flujo .enlace.inverso { stroke: var(--ok); animation-direction: reverse; }
+.flujo .enlace.parado { animation-play-state: paused; stroke-opacity: .35; }
+@keyframes flujo-energia { to { stroke-dashoffset: -32; } }
+.franja-tarifa { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 6px 0 2px; }
+.franja-tarifa i { height: 34px; border-radius: 3px; display: grid; place-items: end center; padding-bottom: 3px;
+  background: color-mix(in srgb, var(--acento) calc(18% + 72% * var(--k)), var(--panel-2)); }
+.franja-tarifa i span { font: 600 10px var(--fuente); color: var(--texto); }
+.franja-tarifa i.ahora { outline: 2px solid var(--texto); outline-offset: 1px; }
+.eje-franja { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--suave); margin-bottom: 8px; }
+.barras-reparto { display: grid; gap: 6px; }
+.barra-reparto { display: grid; grid-template-columns: 130px 1fr 64px 40px; gap: 10px; align-items: center; font-size: 12.5px; color: var(--texto); }
+.barra-reparto:hover { text-decoration: none; }
+.barra-reparto:hover .mono { color: var(--azul); }
+.barra-reparto b { display: block; height: 100%; background: var(--serie-1); border-radius: 0 4px 4px 0; }
+.barra-reparto .num { text-align: right; }
+.avance.mal b { background: var(--nok); }
+.kpi-mal { border-color: var(--nok); }

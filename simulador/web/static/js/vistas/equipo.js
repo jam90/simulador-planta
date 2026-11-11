@@ -6,6 +6,7 @@ import { $, esc, horaIso, insignia, num, poner, valor } from "../util.js";
 import { htmlAcceso } from "../componentes/acceso.js";
 import { actualizarIncidencias, escucharIncidencias, htmlIncidencias } from "../componentes/incidencias.js";
 import { modulo } from "../equipos/index.js";
+import { htmlInspecciones, htmlOrdenes } from "../componentes/registros.js";
 import { PRODUCE } from "../equipos/svg.js";
 import * as reloj from "../reloj.js";
 import { Tendencia } from "../componentes/tendencia.js";
@@ -244,35 +245,6 @@ async function pedirRecientes() {
     h += `<p class="nota">${esc(t("ficha.sin_eventos"))}</p>`;
   }
   poner($("#ficha-recientes", raiz), h || `<p class="nota">${esc(t("ficha.sin_eventos"))}</p>`);
-}
-
-function htmlInspecciones(lista) {
-  if (!lista.length) return `<p class="nota">${esc(t("ficha.sin_inspecciones"))}</p>`;
-  return `<h3>${esc(t("ficha.inspecciones"))}</h3>${lista.map((i) => `
-    <div class="inspeccion ${i.resultado === "OK" ? "ok" : "nok"}">
-      <div class="cab-insp"><b class="mono">${esc(i.pieza_id)}</b> <span class="res">${esc(i.resultado)}</span>
-        <small>${esc(horaIso(i.ts))} · ${esc(i.referencia)} · <span class="mono">${esc(i.orden_id ?? "")}</span></small></div>
-      <div class="cotas">${i.medidas.map((m) => htmlCota(m)).join("")}</div>
-    </div>`).join("")}`;
-}
-
-/** Una cota: barra de tolerancia con la marca de la desviación medida. */
-export function htmlCota(m) {
-  const rango = m.tol_max - m.tol_min || 1;
-  const pos = Math.max(-0.08, Math.min(1.08, (m.desviacion - m.tol_min) / rango)) * 100;
-  return `<div class="cota ${m.resultado === "OK" ? "ok" : "nok"}" title="${esc(`${m.valor} ${m.unidad} (${m.nominal} ${m.tol_min}/+${m.tol_max})`)}">
-    <span class="mono nombre-cota">${esc(m.cota)}</span>
-    <span class="barra-tol"><i style="left:${pos.toFixed(1)}%"></i></span>
-    <span class="mono num">${esc(valor(m.valor))} ${esc(m.unidad)}</span></div>`;
-}
-
-function htmlOrdenes(lista) {
-  if (!lista.length) return `<p class="nota">${esc(t("ficha.sin_ordenes"))}</p>`;
-  return `<h3>${esc(t("ficha.ordenes"))}</h3><div class="tabla-desliza"><table class="ordenes"><thead><tr>
-    <th>orden_id</th><th>referencia</th><th class="num">ok / nok</th><th>motivo_cierre</th><th>fin</th></tr></thead><tbody>
-    ${lista.map((o) => `<tr><td class="mono">${esc(o.orden_id)}</td><td>${esc(o.referencia)}</td>
-      <td class="num">${num(o.piezas_ok, 0)} / ${num(o.piezas_nok, 0)}</td><td class="mono">${esc(o.motivo_cierre)}</td>
-      <td>${esc(horaIso(o.fin, false))}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 export default { montar, actualizar, desmontar, titulo: (p) => p[0] || "app.titulo" };

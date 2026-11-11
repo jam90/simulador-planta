@@ -74,6 +74,14 @@ def test_plano_y_estaticos(web):
     assert cliente.get("/static/i18n/eu.json").status_code == 200
 
 
+def test_tarifa_y_jerarquia(web):
+    _, cliente = web
+    tf = cliente.get("/api/tarifa").json()
+    assert len(tf["horas"]) == 24 and tf["horas"][9]["periodo"] == "P3"    # martes de septiembre: media
+    eqs = {e["id"]: e for e in cliente.get("/api/plano").json()["equipos"]}
+    assert eqs["contador-general"]["mide"] == ["red-l1", "red-sg"] and eqs["contador-general"]["generacion"] == ["fv-01"]
+
+
 def test_idiomas_con_las_mismas_claves():
     claves = {cod: set(json.loads((ESTATICOS / "i18n" / f"{cod}.json").read_text(encoding="utf-8")))
               for cod in ("es", "eu", "en")}

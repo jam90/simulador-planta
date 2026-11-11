@@ -8,6 +8,7 @@ para leer, lo que necesita la vista animada de la planta (/api/vista,
 import json
 import os
 import threading
+from datetime import timedelta
 from pathlib import Path
 
 import uvicorn
@@ -87,8 +88,10 @@ def cargar_plano(motor) -> dict:
     except (OSError, ValueError):
         plano = {}
     posiciones = plano.pop("equipos", {}) or {}
+    # mide / generacion: jerarquía eléctrica (qué cuelga de cada medidor), para el diagrama de energía
     plano["equipos"] = [{"id": e.id, "tipo": e.tipo, "variante": variante(e), "linea": e.linea_id,
-                         "descripcion": e.descripcion, "posicion": posiciones.get(e.id)}
+                         "descripcion": e.descripcion, "posicion": posiciones.get(e.id),
+                         "mide": e.cfg.get("mide", []), "generacion": e.cfg.get("generacion", [])}
                         for e in planta.equipos.values()]
     plano["lineas"] = [{"id": l.id, "descripcion": l.descripcion} for l in planta.lineas.values()]
     plano["zonas_desc"] = {l["id"]: l.get("descripcion", "") for l in motor.config.get("lineas", [])}
@@ -274,6 +277,25 @@ def crear_app(motor) -> FastAPI:
                     "fallo_inversor": bool(fv and fv.fallo_hasta is not None),
                 },
             }
+
+    @app.get("/api/tarifa")
+    def tarifa():
+        """Periodo y precio de cada hora del día simulado en curso (tarifa ficticia; cálculo puro)."""
+        with motor.lock:
+            t = planta.t
+            if t is None:
+                return {"horas": []}
+            tf = planta.tarifa
+            local = a_local(t, planta.tz)
+            inicio = local.replace(hour=0, minute=0, second=0, microsecond=0)
+            horas = []
+            for h in range(24):
+                th = (inicio + timedelta(hours=h)).timestamp() + 1
+                periodo = tf.periodo(th)
+                horas.append({"hora": h, "periodo": periodo, "precio_eur_kwh": tf.precios[periodo],
+                              "contratada_kw": tf.contratada[periodo]})
+            return {"fecha": f"{local:%d/%m/%Y}", "hora_actual": local.hour, "horas": horas,
+                    "precio_excedentes_eur_kwh": tf.precio_excedentes}
 
     @app.get("/api/tendencia/{equipo_id}")
     def tendencia(equipo_id: str, campos: str | None = None, n: int = 720):
