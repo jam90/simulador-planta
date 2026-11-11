@@ -14,6 +14,7 @@ services:
   simulador:
     build: .
     image: simulador-planta:1.2
+    pull_policy: never           # la imagen se construye aquí (build: .); no se busca en internet
     depends_on:
       - mosquitto
     environment:
