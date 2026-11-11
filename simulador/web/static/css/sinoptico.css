@@ -111,6 +111,10 @@
 .sv .seta-base { fill: #f5c400; } .sv .seta { fill: #d9363e; }
 .sv .seta.pulsada { animation: latido .6s ease-in-out infinite; }
 
+/* CNC de doble palé: en el sinóptico, la pieza que se mecaniza la dibuja la célula */
+.sv .pale { fill: var(--s-oscuro); }
+.sinoptico .pieza-int { display: none; }
+
 /* Calidad */
 .sv .punta { fill: var(--nok); }
 

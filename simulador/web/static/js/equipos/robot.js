@@ -1,7 +1,7 @@
 // Robot industrial de seis ejes, visto de lado. Dos variantes según su herramienta (planta.yaml):
-//   pinza:     coge la pieza de la cinta y la mete en la CNC (la pinza cierra al 15 % del ciclo y abre al 75 %,
-//              igual que la señal pinza_cerrada del simulador).
-//   soldadura: baja la antorcha sobre la pieza y suelda (chispas) durante la mayor parte del ciclo.
+//   pinza:     coge la pieza en bruto de la cinta de entrada y la deja en el palé de carga de la CNC
+//              (la pinza cierra al 15 % del ciclo y abre al 75 %, igual que la señal pinza_cerrada).
+//   soldadura: baja la antorcha sobre la pieza mecanizada y la suelda (chispas) del 25 % al 82 % del ciclo.
 // El brazo se mueve con la fase del ciclo real (ciclo_ini/ciclo_fin del simulador) a la hora dibujada.
 import { t } from "../i18n.js";
 import { num } from "../util.js";
@@ -15,8 +15,10 @@ const CASA = [92, 40];
 
 // Recorridos (fase del ciclo, x, y) en coordenadas del dibujo
 const RECORRIDO = {
-  pinza: [[0, ...CASA], [0.15, 40, 136], [0.3, 70, 92], [0.55, 208, 112], [0.75, 208, 112], [1, ...CASA]],
-  soldadura: [[0, ...CASA], [0.18, 150, 100], [0.25, 150, 122], [0.82, 194, 122], [0.9, 172, 92], [1, ...CASA]],
+  // Coge la pieza al final de la cinta de entrada y la deja en el palé de carga de la CNC
+  pinza: [[0, ...CASA], [0.15, 40, 133], [0.3, 70, 92], [0.55, 193, 119], [0.75, 193, 119], [1, ...CASA]],
+  // Baja la antorcha sobre la pieza de la cinta de salida y la recorre soldando
+  soldadura: [[0, ...CASA], [0.18, 160, 92], [0.25, 160, 112], [0.82, 184, 112], [0.9, 172, 88], [1, ...CASA]],
 };
 const SOLDANDO = [0.25, 0.82];
 const AVISO_DEGRADACION = 1.2;      // 20 % por encima del nominal (a partir de 1,25 aumentan las piezas NOK)
@@ -34,9 +36,9 @@ function herramienta(variante) {
   }
   return `<g data-p="herr">
     <rect class="os" x="-7" y="-6" width="14" height="10" rx="2"/>
-    <rect class="m" data-p="dedo1" x="-9" y="3" width="4" height="13" rx="1"/>
-    <rect class="m" data-p="dedo2" x="5" y="3" width="4" height="13" rx="1"/>
-    <rect class="pieza" data-p="carga" x="-6" y="9" width="12" height="9" rx="1.5"/>
+    <rect class="m" data-p="dedo1" x="-14" y="3" width="4" height="15" rx="1"/>
+    <rect class="m" data-p="dedo2" x="10" y="3" width="4" height="15" rx="1"/>
+    <rect class="pieza" data-p="carga" x="-10" y="5" width="20" height="12" rx="2"/>
   </g>`;
 }
 
@@ -75,7 +77,7 @@ export default {
     if (variante === "pinza") {
       const cerrada = f !== null && f >= 0.15 && f < 0.75;
       const g = cerrada ? 0 : 4;
-      attr(p.dedo1, "x", -9 - g); attr(p.dedo2, "x", 5 + g);
+      attr(p.dedo1, "x", -14 - g); attr(p.dedo2, "x", 10 + g);
       clase(p.carga, "oculto", !cerrada);
     } else {
       clase(p.chispas, "activas", f !== null && f >= SOLDANDO[0] && f < SOLDANDO[1]);

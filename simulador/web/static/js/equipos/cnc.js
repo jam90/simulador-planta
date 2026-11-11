@@ -1,18 +1,26 @@
-// Centro de mecanizado CNC: el husillo baja y gira durante el mecanizado real (mec_ini/mec_fin),
-// con refrigerante. En el panel, el avance del ciclo, el desgaste de la herramienta y el refrigerante.
+// Centro de mecanizado CNC de doble palé: el robot deja la pieza en bruto en el palé de carga (a la
+// izquierda, fuera de la zona de trabajo) mientras la máquina mecaniza la anterior en el otro palé.
+// Al acabar el mecanizado se intercambian los palés. El husillo baja y gira durante el mecanizado
+// real (mec_ini/mec_fin), con refrigerante. En el panel, el avance del ciclo, el desgaste de la
+// herramienta y el nivel de refrigerante.
 import { t } from "../i18n.js";
 import { num } from "../util.js";
 import { marcarEstado } from "./generico.js";
 import { attr, clase, fase, faseRapida, partes, piloto, zonaClic } from "./svg.js";
 
-const W = 180, H = 250;
+const W = 230, H = 250;
+const M = 50;                 // la máquina empieza aquí; a su izquierda, el palé de carga
 
 export default {
   caja: [W, H],
   icono() {
     return `<g class="cnc">${zonaClic(W, H)}
-      <rect class="m" x="0" y="0" width="${W}" height="${H}" rx="8"/>
-      <rect class="m2" x="0" y="0" width="${W}" height="30" rx="8"/>
+      <rect class="m2" x="18" y="100" width="10" height="${H - 100}"/>
+      <rect class="os" x="8" y="${H - 8}" width="30" height="8" rx="2"/>
+      <rect class="pale" x="0" y="96" width="46" height="6" rx="2"/>
+      <g transform="translate(${M} 0)">
+      <rect class="m" x="0" y="0" width="180" height="${H}" rx="8"/>
+      <rect class="m2" x="0" y="0" width="180" height="30" rx="8"/>
       <rect class="vidrio" x="14" y="44" width="104" height="112" rx="4"/>
       <g data-p="cabezal">
         <rect class="os" x="48" y="44" width="36" height="34" rx="3"/>
@@ -22,8 +30,9 @@ export default {
       </g>
       <g class="refrigerante" data-p="refrig"><path class="gota" d="M52 112 q2 5 0 8 q-2 -3 0 -8z"/>
         <path class="gota g2" d="M80 108 q2 5 0 8 q-2 -3 0 -8z"/></g>
-      <rect class="os" x="22" y="134" width="88" height="14" rx="2"/>
-      <rect class="pieza" x="54" y="118" width="24" height="16" rx="2"/>
+      <rect class="pale" x="40" y="132" width="52" height="4" rx="1"/>
+      <rect class="os" x="22" y="136" width="88" height="12" rx="2"/>
+      <rect class="pieza pieza-int" x="56" y="120" width="20" height="12" rx="2"/>
       <rect class="m2" x="126" y="44" width="44" height="112" rx="4"/>
       <rect class="pantalla" x="131" y="50" width="34" height="26" rx="2"/>
       <rect class="barra-fondo" x="134" y="66" width="28" height="5" rx="1"/>
@@ -33,8 +42,10 @@ export default {
       <rect class="barra-ac" data-p="desgaste" x="134" y="146" width="6" height="0" rx="1"/>
       <rect class="barra-fondo" x="148" y="86" width="6" height="60" rx="1"/>
       <rect class="barra-az" data-p="nivel" x="148" y="146" width="6" height="0" rx="1"/>
-      <rect class="os" x="10" y="${H - 22}" width="${W - 20}" height="14" rx="3"/>
+      <rect class="os" x="10" y="${H - 22}" width="160" height="14" rx="3"/>
+      <rect class="m2" x="174" y="108" width="6" height="24" rx="1"/>
       ${piloto(160, 15, 6)}
+      </g>
     </g>`;
   },
   actualizar(nodo, d) {

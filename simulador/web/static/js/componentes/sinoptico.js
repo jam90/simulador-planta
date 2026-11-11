@@ -8,15 +8,11 @@ import { esc } from "../util.js";
 import { modulo } from "../equipos/index.js";
 import { DEFS, PRODUCE } from "../equipos/svg.js";
 import * as reloj from "../reloj.js";
+import { estadoEn } from "../reloj.js";
 import { Cinta, htmlCinta } from "./cinta.js";
+import { Celda } from "./celda.js";
 
-/** Estado de una serie [[t, estado], ...] en el instante tm (el último cambio anterior). */
-export function estadoEn(serie, tm, porDefecto) {
-  if (!serie?.length || tm === null) return porDefecto;
-  let e = serie[0][1];
-  for (const [t0, est] of serie) { if (t0 <= tm) e = est; else break; }
-  return e;
-}
+export { estadoEn };
 
 const RITMO = { PRODUCCION: 1, ARRANQUE: 0.5 };
 
@@ -100,9 +96,12 @@ export class Sinoptico {
     this.svg = contenedor.querySelector("svg");
     this.nodos = {};
     for (const g of this.svg.querySelectorAll(".eq-sin")) (this.nodos[g.dataset.id] ||= []).push(g);
-    this.cintas = (p.cintas || []).map((c) => ({
-      linea: c.linea, cinta: new Cinta(this.svg.querySelector(`.cinta[data-linea="${CSS.escape(c.linea)}"]`), { ...c, suelo: p.suelo }),
-    }));
+    // Con «proceso» en el plano, cada pieza sigue el recorrido de la célula; si no, un flujo genérico
+    this.cintas = (p.cintas || []).map((c) => {
+      const nodo = this.svg.querySelector(`.cinta[data-linea="${CSS.escape(c.linea)}"]`);
+      const conf = { ...c, suelo: p.suelo };
+      return { linea: c.linea, cinta: c.proceso ? new Celda(nodo, conf) : new Cinta(nodo, conf) };
+    });
     this.datos = {};
     this.vista = null;
     this.ultimoFotograma = null;
@@ -244,7 +243,8 @@ export class Sinoptico {
         const l = this.vista.lineas.find((x) => x.id === linea);
         const est = estadoEn(l.estados, tm, l.estado);
         const corre = pausa ? 0 : RITMO[est] || 0;
-        const r = cinta.animar(tm, corre, l.piezas, l.intervalo_pieza, rapido, pausa ? 0 : dtReal);
+        const r = cinta instanceof Celda ? cinta.animar(tm, l, this.vista, rapido, pausa ? 0 : dtReal, pausa)
+          : cinta.animar(tm, corre, l.piezas, l.intervalo_pieza, rapido, pausa ? 0 : dtReal);
         for (const d of Object.values(this.datos)) {
           if (d.meta.linea === linea) { d.bajo = r.bajo; d.ultimo = r.ultimo; }
         }

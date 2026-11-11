@@ -45,3 +45,11 @@ export const enPausa = () => datos.pausado;
 /** Por encima de esta velocidad un ciclo dura menos de un segundo real: se anima en modo rápido. */
 export const RAPIDO = 30;
 export const esRapido = () => datos.acelerar >= RAPIDO;
+
+/** Estado de una serie [[t, estado], ...] en el instante tm (el del último cambio anterior). */
+export function estadoEn(serie, tm, porDefecto) {
+  if (!serie?.length || tm === null) return porDefecto;
+  let e = serie[0][1];
+  for (const [t0, est] of serie) { if (t0 <= tm) e = est; else break; }
+  return e;
+}

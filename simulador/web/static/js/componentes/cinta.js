@@ -11,23 +11,32 @@ const ANCHO_PIEZA = 26;
 const REAL_RAPIDO_S = 3.5;    // en modo rápido, segundos de reloj que tarda una pieza en recorrerla
 const CAIDA_S = 0.45;
 
+/** Tramos de la cinta: [[x0, x1], ...] (por defecto, uno de x0 a x1). */
+export const tramos = (c) => c.tramos || [[c.x0, c.x1]];
+
 export function htmlCinta(c, suelo) {
-  const largo = c.x1 - c.x0;
-  const patas = [];
-  for (let x = c.x0 + 30; x < c.x1 - 10; x += 140) patas.push(x);
+  const ts = tramos(c);
+  const fin = ts[ts.length - 1][1];
+  const id = `clip-cinta-${esc(c.linea)}`;
+  const banda = ([a, b]) => {
+    const patas = [];
+    for (let x = a + 24; x < b - 10; x += 140) patas.push(x);
+    return `${patas.map((x) => `<rect class="m2" x="${x}" y="${c.y + 12}" width="8" height="${suelo - c.y - 12}"/>`).join("")}
+      <rect class="banda" x="${a}" y="${c.y}" width="${b - a}" height="12" rx="6"/>`;
+  };
+  const rodillos = ([a, b]) => `<circle class="rodillo" cx="${a + 6}" cy="${c.y + 6}" r="6"/>
+    <circle class="rodillo" cx="${b - 6}" cy="${c.y + 6}" r="6"/>`;
+  const x0 = ts[0][0];
   return `<g class="cinta" data-linea="${esc(c.linea)}">
-    ${patas.map((x) => `<rect class="m2" x="${x}" y="${c.y + 12}" width="8" height="${suelo - c.y - 12}"/>`).join("")}
     <rect class="rechazo" x="${c.rechazo - 24}" y="${suelo - 46}" width="48" height="46" rx="3"/>
     <text class="txt-mini cont-txt" data-p="nok" x="${c.rechazo}" y="${suelo - 18}" text-anchor="middle"></text>
-    <rect class="caja-ok" x="${c.x1 + 6}" y="${suelo - 50}" width="58" height="50" rx="3"/>
-    <text class="txt-mini cont-txt" data-p="ok" x="${c.x1 + 35}" y="${suelo - 20}" text-anchor="middle"></text>
-    <rect class="banda" x="${c.x0}" y="${c.y}" width="${largo}" height="12" rx="6"/>
-    <clipPath id="clip-cinta-${esc(c.linea)}"><rect x="${c.x0 + 6}" y="${c.y}" width="${largo - 12}" height="12"/></clipPath>
-    <g clip-path="url(#clip-cinta-${esc(c.linea)})"><g class="estrias-cinta" data-p="estrias">
-      ${Array.from({ length: Math.ceil(largo / 20) + 2 }, (_, i) =>
-        `<path d="M${c.x0 + i * 20} ${c.y + 2} l-6 8"/>`).join("")}</g></g>
-    <circle class="rodillo" cx="${c.x0 + 6}" cy="${c.y + 6}" r="6"/>
-    <circle class="rodillo" cx="${c.x1 - 6}" cy="${c.y + 6}" r="6"/>
+    <rect class="caja-ok" x="${fin + 6}" y="${suelo - 50}" width="58" height="50" rx="3"/>
+    <text class="txt-mini cont-txt" data-p="ok" x="${fin + 35}" y="${suelo - 20}" text-anchor="middle"></text>
+    ${ts.map(banda).join("")}
+    <clipPath id="${id}">${ts.map(([a, b]) => `<rect x="${a + 6}" y="${c.y}" width="${b - a - 12}" height="12"/>`).join("")}</clipPath>
+    <g clip-path="url(#${id})"><g class="estrias-cinta" data-p="estrias">
+      ${Array.from({ length: Math.ceil((fin - x0) / 20) + 2 }, (_, i) => `<path d="M${x0 + i * 20} ${c.y + 2} l-6 8"/>`).join("")}</g></g>
+    ${ts.map(rodillos).join("")}
     <g data-p="piezas"></g>
   </g>`;
 }

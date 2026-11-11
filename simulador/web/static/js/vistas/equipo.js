@@ -7,8 +7,8 @@ import { htmlAcceso } from "../componentes/acceso.js";
 import { actualizarIncidencias, escucharIncidencias, htmlIncidencias } from "../componentes/incidencias.js";
 import { modulo } from "../equipos/index.js";
 import { PRODUCE } from "../equipos/svg.js";
-import { estadoEn } from "../componentes/sinoptico.js";
 import * as reloj from "../reloj.js";
+import { estadoEn } from "../reloj.js";
 
 let raiz = null, id = null, meta = null, mod = null, nodoDibujo = null, grupo = null, datos = null;
 let temporizador = null, claveSalidas = "", marco = null, estadoPintado = null;

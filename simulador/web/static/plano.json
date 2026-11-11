@@ -1,5 +1,5 @@
 {
-  "_ayuda": "Dónde se dibuja cada equipo en el sinóptico (coordenadas del lienzo, arriba a la izquierda de su dibujo). Un equipo que no esté aquí se coloca solo, en su zona. capa: fondo (detrás de la cinta) o frente. repetir: más copias del mismo equipo. etiqueta: [x, y] del nombre, si no va centrado debajo.",
+  "_ayuda": "Dónde se dibuja cada equipo en el sinóptico (coordenadas del lienzo, arriba a la izquierda de su dibujo). Un equipo que no esté aquí se coloca solo, en su zona. capa: fondo (detrás de la cinta) o frente. repetir: más copias del mismo equipo. cintas[].proceso: posiciones del recorrido de las piezas por la célula (componentes/celda.js); sin él, las piezas solo avanzan por la cinta. etiqueta: [x, y] del nombre, si no va centrado debajo.",
   "lienzo": [1600, 760],
   "suelo": 700,
   "edificio": { "x0": 20, "x1": 1440, "techo": 150 },
@@ -9,7 +9,12 @@
   ],
   "tabiques": [{ "x": 1110, "y": 330 }],
   "cintas": [
-    { "linea": "L1", "x0": 210, "x1": 1040, "y": 560, "calidad": 938, "rechazo": 958 }
+    {
+      "linea": "L1", "y": 560, "tramos": [[210, 330], [670, 1040]], "rechazo": 958,
+      "equipos": { "carga": "robot-01", "cnc": "cnc-01", "soldadura": "robot-02", "calidad": "calidad-01" },
+      "proceso": { "entrada": 212, "recoge": 290, "pale": [443, 534], "mecanizado": [536, 570],
+                   "salida": 672, "soldadura": 802, "calidad": 928, "fin": 1024, "rechazo": 948 }
+    }
   ],
   "tuberias": [
     { "equipo": "compresor-01", "puntos": [[1270, 540], [1270, 380], [160, 380], [160, 532]] }
@@ -21,7 +26,7 @@
     "mes": { "x": 40, "y": 530, "etiqueta": [75, 516] },
     "plc-l1": { "x": 125, "y": 530 },
     "robot-01": { "x": 260, "y": 410, "capa": "frente", "etiqueta": [360, 716] },
-    "cnc-01": { "x": 430, "y": 450, "capa": "fondo" },
+    "cnc-01": { "x": 430, "y": 450, "capa": "fondo", "etiqueta": [570, 716] },
     "robot-02": { "x": 640, "y": 410, "capa": "frente", "etiqueta": [740, 716] },
     "calidad-01": { "x": 880, "y": 400, "capa": "frente", "etiqueta": [938, 716] },
     "red-l1": { "x": 990, "y": 215 },
