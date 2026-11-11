@@ -1,19 +1,24 @@
 """Interfaz web (FastAPI): controla el simulador en modo vivo.
 
 Permite elegir qué equipos se publican, activar o desactivar salidas, cambiar
-la velocidad, ensuciar los datos y provocar incidencias.
+la velocidad, ensuciar los datos y provocar incidencias. Además ofrece, solo
+para leer, lo que necesita la vista animada de la planta (/api/vista,
+/api/tendencia, /api/kpis, /api/plano, /api/recientes).
 """
+import json
 import os
 import threading
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..equipos import EquipoLinea
 from ..tiempo import a_iso, a_local
+from .observador import Observador, finito
 
 ESTATICOS = Path(__file__).with_name("static")
 NOMBRE_CANAL = {"telemetria": "Telemetría", "eventos": "Eventos (solo cuando ocurren)",
@@ -35,13 +40,13 @@ def acceso(motor, eq) -> dict:
             servidores = [{"desde": "Node-RED", "servidor": mqtt.host, "puerto": mqtt.puerto}]
         resultado["mqtt"] = {
             "activa": motor.salida_activa["mqtt"], "servidores": servidores,
-            "topics": [{"canal": NOMBRE_CANAL[c], "topic": mqtt.topic(c, eq.linea_id, eq.id)} for c in eq.canales],
+            "topics": [{"clave": c, "canal": NOMBRE_CANAL[c], "topic": mqtt.topic(c, eq.linea_id, eq.id)} for c in eq.canales],
             "todos": f"{mqtt.prefijo}/{eq.linea_id}/{eq.id}/#",
         }
     if jsonl:
         resultado["ficheros"] = {
             "activa": motor.salida_activa["jsonl"],
-            "carpetas": [{"canal": NOMBRE_CANAL[c], "carpeta": jsonl.carpeta(c, eq.linea_id, eq.id)}
+            "carpetas": [{"clave": c, "canal": NOMBRE_CANAL[c], "carpeta": jsonl.carpeta(c, eq.linea_id, eq.id)}
                          for c in eq.canales],
         }
     return resultado
@@ -66,9 +71,42 @@ class Incidencia(BaseModel):
     minutos: float = 30
 
 
+def variante(eq):
+    """Variante de dibujo de un equipo (p. ej., la herramienta de un robot)."""
+    return (eq.cfg.get("parametros") or {}).get("herramienta")
+
+
+def cargar_plano(planta) -> dict:
+    """Plano del sinóptico (static/plano.json) cruzado con los equipos reales.
+
+    Un equipo sin posición en el plano aparece igualmente: la web lo coloca sola."""
+    try:
+        plano = json.loads((ESTATICOS / "plano.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        plano = {}
+    posiciones = plano.pop("equipos", {}) or {}
+    plano["equipos"] = [{"id": e.id, "tipo": e.tipo, "variante": variante(e), "linea": e.linea_id,
+                         "descripcion": e.descripcion, "posicion": posiciones.get(e.id)}
+                        for e in planta.equipos.values()]
+    plano["lineas"] = [{"id": l.id, "descripcion": l.descripcion} for l in planta.lineas.values()]
+    plano["zona_horaria"] = str(planta.tz)
+    return plano
+
+
 def crear_app(motor) -> FastAPI:
     app = FastAPI(title="Simulador de planta")
     planta = motor.planta
+    obs = motor.observador = Observador(planta)
+    plano = cargar_plano(planta)
+
+    @app.middleware("http")
+    async def sin_cache(request: Request, call_next):
+        # Que el navegador pregunte siempre por la versión nueva (sigue usando ETag: es barato)
+        respuesta = await call_next(request)
+        respuesta.headers["Cache-Control"] = "no-cache"
+        return respuesta
+
+    app.mount("/static", StaticFiles(directory=ESTATICOS), name="static")
 
     @app.get("/")
     def inicio():
@@ -97,7 +135,10 @@ def crear_app(motor) -> FastAPI:
                              "admite_incidencias": planta.admite_incidencias(e)}
                             for e in planta.equipos.values()],
                 "salidas": [{"nombre": s.nombre, "activa": motor.salida_activa[s.nombre],
-                             "solo_vivo": not s.en_historico, "descripcion": s.descripcion}
+                             "solo_vivo": not s.en_historico, "descripcion": s.descripcion,
+                             # Para que la web pueda traducir la descripción
+                             "parametros": {k: str(getattr(s, k)) for k in ("ruta", "prefijo", "agrupar")
+                                            if hasattr(s, k)}}
                             for s in motor.salidas],
                 "incidencias": {
                     "fuga_aire": bool(compresor and "fuga_aire" in compresor.incidencias),
@@ -172,6 +213,89 @@ def crear_app(motor) -> FastAPI:
         if equipo_id not in planta.equipos:
             raise HTTPException(404, f"No existe el equipo {equipo_id}")
         return acceso(motor, planta.equipos[equipo_id])
+
+    # --- Solo lectura, para la vista animada ------------------------------------------
+    @app.get("/api/plano")
+    def plano_planta():
+        return plano
+
+    @app.get("/api/vista")
+    def vista():
+        """Estado de todos los equipos y lo necesario para animar (ciclos, piezas, estados)."""
+        with motor.lock:
+            t = planta.t
+            lineas = []
+            for l in planta.lineas.values():
+                mes = next((e for e in l.equipos if e.tipo == "mes"), None)
+                o = mes.orden if mes else None
+                lineas.append({
+                    "id": l.id, "estado": l.estado, "causa": l.causa.id if l.causa else None,
+                    "codigo": l.codigo, "motivo": l.motivo, "referencia": l.referencia,
+                    "fin_estado": finito(l.t_fin_estado), "intervalo_pieza": l.intervalo_pieza,
+                    "piezas": list(obs.piezas.get(l.id, ())),
+                    "estados": list(obs.estados.get(l.id, ()))[-40:],
+                    "orden": {"orden_id": o["orden_id"], "referencia": o["referencia"],
+                              "cantidad": o["cantidad"], "ok": o["ok"], "nok": o["nok"],
+                              "inicio": o["inicio"]} if o else None,
+                })
+            equipos = {}
+            for e in planta.equipos.values():
+                m = motor.ultimo_por_equipo.get(e.id)
+                equipos[e.id] = {"estado": e.estado, "valores": m["valores"] if m else None,
+                                 "ciclos": list(obs.ciclos.get(e.id, ()))[-4:]}
+            compresor = planta.equipo_de_tipo("compresor")
+            fv = planta.equipo_de_tipo("fotovoltaica")
+            return {
+                "t": t, "intervalo": obs.intervalo, "acelerar": motor.acelerar, "pausado": motor.pausado,
+                "hora_local": f"{a_local(t, planta.tz):%d/%m/%Y %H:%M:%S}" if t else None,
+                "turno": planta.calendario.turno(t) if t else None,
+                "modo": planta.calendario.modo(t) if t else None,
+                "lineas": lineas, "equipos": equipos,
+                "incidencias": {
+                    "fuga_aire": bool(compresor and "fuga_aire" in compresor.incidencias),
+                    "fallo_inversor": bool(fv and fv.fallo_hasta is not None),
+                },
+            }
+
+    @app.get("/api/tendencia/{equipo_id}")
+    def tendencia(equipo_id: str, campos: str | None = None, n: int = 720):
+        if equipo_id not in planta.equipos:
+            raise HTTPException(404, f"No existe el equipo {equipo_id}")
+        with motor.lock:
+            return obs.tendencia(equipo_id, campos.split(",") if campos else None, max(1, min(n, 720)))
+
+    @app.get("/api/kpis")
+    def kpis():
+        """Indicadores calculados por la web (no están en los datos que publica el simulador)."""
+        with motor.lock:
+            contador = planta.equipo_de_tipo("contador_general")
+            fv = planta.equipo_de_tipo("fotovoltaica")
+            cg = (motor.ultimo_por_equipo.get(contador.id) or {}).get("valores", {}) if contador else {}
+            vfv = (motor.ultimo_por_equipo.get(fv.id) or {}).get("valores", {}) if fv else {}
+            consumo = sum((motor.ultimo_por_equipo.get(e.id) or {}).get("valores", {}).get("potencia_activa_kw", 0)
+                          for e in planta.equipos.values() if e.tipo == "analizador_red")
+            return {
+                "lineas": {l.id: obs.kpis_linea(l) for l in planta.lineas.values()},
+                "energia": {
+                    "consumo_kw": consumo if consumo else None,
+                    "generacion_kw": vfv.get("potencia_generada_kw"),
+                    "neto_kw": cg.get("potencia_activa_kw"),
+                    "periodo": cg.get("periodo_tarifario"), "precio_eur_kwh": cg.get("precio_eur_kwh"),
+                    "contratada_kw": cg.get("potencia_contratada_kw"),
+                    "media_15min_kw": cg.get("potencia_media_15min_kw"), "maximetro_kw": cg.get("maximetro_kw"),
+                    "coste_acumulado_eur": cg.get("coste_acumulado_eur"),
+                    "turno": obs.energia_turno(),
+                },
+            }
+
+    @app.get("/api/recientes")
+    def recientes(equipo: str | None = None, linea: str | None = None, n: int = 30):
+        """Eventos, inspecciones y órdenes recientes tal como ocurren (sin dato sucio ni filtros)."""
+        with motor.lock:
+            filtra = lambda ms: [m for m in ms if (not equipo or m.get("equipo") == equipo)
+                                 and (not linea or m.get("linea") == linea)][-n:][::-1]
+            return {"eventos": filtra(obs.eventos), "inspecciones": filtra(obs.inspecciones),
+                    "ordenes": filtra(obs.ordenes)}
 
     @app.get("/api/valores/{equipo_id}")
     def valores(equipo_id: str):

@@ -1,0 +1,55 @@
+/* Estructura: cabecera fija, navegación, banda de averías y contenido */
+.cabecera {
+  position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--borde);
+}
+.cabecera .barra { display: flex; align-items: center; gap: 14px 18px; padding: 8px 20px; flex-wrap: wrap;
+  max-width: 1600px; margin: 0 auto; }
+.marca { display: flex; align-items: center; gap: 10px; color: var(--texto); font-weight: 700; font-size: 15px; }
+.marca:hover { text-decoration: none; }
+.marca img, .marca svg { width: 30px; height: 30px; flex: none; }
+
+.navegacion { display: flex; gap: 2px; flex-wrap: wrap; }
+.navegacion a { color: var(--suave); padding: 6px 10px; border-radius: 7px; font-weight: 550; }
+.navegacion a:hover { color: var(--texto); background: var(--panel-2); text-decoration: none; }
+.navegacion a[aria-current="page"] { color: var(--texto); background: var(--panel-2);
+  box-shadow: inset 0 -2px 0 var(--acento); }
+
+.dato-cab { display: flex; flex-direction: column; line-height: 1.2; }
+.dato-cab small { font-size: 11px; color: var(--tenue); text-transform: uppercase; letter-spacing: .04em; }
+.dato-cab b { font-size: 14px; font-weight: 650; }
+.cab-lineas { display: flex; gap: 10px; flex-wrap: wrap; }
+.separa { flex: 1; }
+.controles { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controles select { min-width: 0; }
+.controles label { display: flex; align-items: center; gap: 6px; color: var(--suave); font-size: 12.5px; }
+
+/* Avería en curso: visible desde cualquier vista */
+.banda-averias { max-width: 1600px; margin: 0 auto; padding: 0 20px; }
+.banda-averias:empty { display: none; }
+.averia-curso { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; margin-top: 12px;
+  border: 1px solid var(--e-averia); border-left-width: 5px; border-radius: var(--radio);
+  background: color-mix(in srgb, var(--e-averia) 9%, var(--panel)); padding: 10px 14px; }
+.averia-curso .texto { flex: 1; min-width: 240px; }
+.averia-curso .cuenta { font-family: var(--mono); font-weight: 700; font-size: 15px; }
+
+main.vista { max-width: 1600px; margin: 0 auto; padding: 16px 20px 40px; }
+.titulo-vista { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+.titulo-vista h1 { font-size: 20px; font-weight: 700; }
+.titulo-vista p { margin: 0; color: var(--suave); }
+
+#aviso { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 50;
+  background: var(--aviso-fondo); color: var(--aviso-texto); padding: 10px 16px; border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25); max-width: min(90vw, 640px); display: none; }
+#aviso.ok { background: var(--ok); color: #fff; }
+#aviso.error { background: var(--nok); color: #fff; }
+
+.sin-conexion { position: fixed; inset: auto 0 0 0; background: var(--nok); color: #fff; text-align: center;
+  padding: 6px; font-weight: 600; z-index: 40; }
+
+@media (max-width: 760px) {
+  .cabecera .barra { padding: 8px 12px; gap: 8px 12px; }
+  main.vista, .banda-averias { padding-left: 12px; padding-right: 12px; }
+  .separa { display: none; }
+  .rejilla { grid-template-columns: 1fr; }
+}

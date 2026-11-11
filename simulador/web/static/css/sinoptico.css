@@ -1,0 +1,13 @@
+/* Sinóptico de la planta y dibujos de los equipos (SVG). Los colores salen de los tokens de base.css. */
+.eq .cuerpo { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
+.eq .rotulo-tipo { font: 10px var(--mono); fill: var(--suave); }
+.eq .baliza-estado { fill: var(--c, var(--e-parada)); }
+[data-estado="PRODUCCION"], [data-estado="PRODUCIENDO"], [data-estado="CARGA"], [data-estado="ENCENDIDA"], [data-estado="OK"] { --c: var(--e-produccion); }
+[data-estado="ARRANQUE"], [data-estado="VACIO"], [data-estado="VENTILACION"] { --c: var(--e-arranque); }
+[data-estado="ESPERA"], [data-estado="APAGADO"], [data-estado="EMERGENCIA"] { --c: var(--e-espera); }
+[data-estado="MICROPARADA"] { --c: var(--e-microparada); }
+[data-estado="AVERIA"], [data-estado="FALLO"] { --c: var(--e-averia); }
+[data-estado="MANTENIMIENTO"], [data-estado="FRIO"] { --c: var(--e-mantenimiento); }
+[data-estado="CAMBIO_FORMATO"] { --c: var(--e-cambio); }
+[data-estado="CALOR"] { --c: var(--acento); }
+[data-estado="PARADA"], [data-estado="PARADO"] { --c: var(--e-parada); }

@@ -17,11 +17,23 @@ from simulador.salidas import crear_salidas
 from test_simulador import config, epoch
 
 
-def generar(tmp_path, dias):
+def generar(tmp_path, dias, con_web=False):
     cfg = config(tmp_path)
     motor = Motor(cfg, crear_salidas(cfg))
+    if con_web:
+        # La web observa cada paso y se consultan sus datos: no debe cambiar nada de lo que se genera
+        from fastapi.testclient import TestClient
+        from simulador.web.api import crear_app
+        cliente = TestClient(crear_app(motor))
     t0 = epoch(2026, 9, 1)
-    motor.historico(t0, t0 + dias * 86400, 60)
+    if con_web:
+        for dia in range(int(dias)):
+            motor.historico(t0 + dia * 86400, t0 + (dia + 1) * 86400, 60)
+            for ruta in ("/api/estado", "/api/vista", "/api/kpis", "/api/recientes",
+                         "/api/tendencia/robot-01", "/api/valores/cnc-01", "/api/plano"):
+                assert cliente.get(ruta).status_code == 200, ruta
+    else:
+        motor.historico(t0, t0 + dias * 86400, 60)
     motor.cerrar()
     h = hashlib.sha256()
     for f in sorted(p for p in tmp_path.rglob("*") if p.is_file()):
@@ -41,12 +53,19 @@ def generar(tmp_path, dias):
     }
 
 
+HUELLA_2_DIAS = {
+    "telemetria": 37440, "eventos": 4323, "textos": 6, "inspecciones": 2051, "ordenes": 7,
+    "nok": 55, "completadas": 6, "notas": 4, "partes": 2,
+    "sha256": "92b246dcc55e7f42cb8cb999d398e28a040ab9d232805648ec4677daa1eab30e",
+}
+
+
 def test_historico_2_dias(tmp_path):
-    assert generar(tmp_path, 2) == {
-        "telemetria": 37440, "eventos": 4323, "textos": 6, "inspecciones": 2051, "ordenes": 7,
-        "nok": 55, "completadas": 6, "notas": 4, "partes": 2,
-        "sha256": "92b246dcc55e7f42cb8cb999d398e28a040ab9d232805648ec4677daa1eab30e",
-    }
+    assert generar(tmp_path, 2) == HUELLA_2_DIAS
+
+
+def test_la_web_no_cambia_los_datos(tmp_path):
+    assert generar(tmp_path, 2, con_web=True) == HUELLA_2_DIAS
 
 
 @pytest.mark.lento

@@ -29,6 +29,8 @@ class Motor:
         self.ultimos = {"telemetria": deque(maxlen=300), "eventos": deque(maxlen=200),
                         "textos": deque(maxlen=50), "inspecciones": deque(maxlen=100), "ordenes": deque(maxlen=50)}
         self.ultimo_por_equipo = {}
+        # Lo pone la web: recibe en cada paso lo que ha pasado, sin dato sucio ni filtros. Solo lee.
+        self.observador = None
         self.lock = threading.RLock()
         self.parar = threading.Event()
         self.acelerar = 1.0
@@ -42,6 +44,8 @@ class Motor:
             self.ultimo_por_equipo[m["equipo"]] = m
         eventos, registros = self.planta.recoger()
         textos = self.textos.observar(t, eventos) if self.textos else []
+        if self.observador:
+            self.observador.observar(t, telem, eventos, registros)
         telem = [m for m in telem if self.publicar.get(m["equipo"], True)]
         eventos = [e for e in eventos if self.publicar.get(e["equipo"], True)]
         registros = {canal: [m for m in mensajes if self.publicar.get(m.get("equipo"), True)]
