@@ -9,7 +9,7 @@ import { modulo } from "../equipos/index.js";
 import { DEFS, PRODUCE } from "../equipos/svg.js";
 import * as reloj from "../reloj.js";
 import { estadoEn } from "../reloj.js";
-import { Cinta, htmlCinta } from "./cinta.js";
+import { Cinta, htmlCinta, tramos } from "./cinta.js";
 import { Celda } from "./celda.js";
 
 export { estadoEn };
@@ -90,7 +90,7 @@ export class Sinoptico {
       ${(p.cintas || []).map((c) => htmlCinta(c, p.suelo)).join("")}
       ${delante.map(copias).join("")}
       <g class="avisos-linea">${(p.cintas || []).map((c) => `<g class="aviso-linea" data-aviso-linea="${esc(c.linea)}"
-          transform="translate(${(c.x0 + c.x1) / 2} ${c.y - 190})"></g>`).join("")}</g>
+          transform="translate(${(tramos(c)[0][0] + tramos(c).at(-1)[1]) / 2} ${c.y - 190})"></g>`).join("")}</g>
       <g class="bocadillos" data-p="bocadillos"></g>
     </svg>`;
     this.svg = contenedor.querySelector("svg");

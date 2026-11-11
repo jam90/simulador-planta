@@ -19,6 +19,8 @@
 .factor i b { display: block; height: 100%; background: var(--azul); }
 .tarjeta-sinoptico { padding: 10px 12px; }
 .tarjeta-sinoptico > header { padding: 2px 4px; }
+.tarjeta-sinoptico > header h2 { flex: none; }
+.tarjeta-sinoptico > header .nota { flex: 1; min-width: 200px; }
 .leyenda { display: flex; gap: 4px 6px; flex-wrap: wrap; }
 .leyenda .estado { font-size: 11px; }
 .contenedor-sinoptico { overflow-x: auto; border-radius: 8px; }
