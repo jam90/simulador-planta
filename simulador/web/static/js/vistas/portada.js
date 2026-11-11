@@ -16,7 +16,10 @@ function montar(el, ctx) {
         <span class="nota" id="portada-modo"></span>
         <div class="leyenda">${["PRODUCCION", "ARRANQUE", "ESPERA", "MICROPARADA", "AVERIA", "MANTENIMIENTO", "CAMBIO_FORMATO", "PARADA"]
           .map((e) => insignia(e)).join("")}</div></header>
+      <p class="nota solo-movil" data-i18n="portada.desliza"></p>
       <div id="sinoptico" class="contenedor-sinoptico"></div>
+      ${(ctx.plano.cintas || []).some((c) => c.pasos?.length) ? `<ol class="pasos-leyenda">
+        ${[1, 2, 3, 4].map((n) => `<li><b>${n}</b><span data-i18n="portada.paso${n}"></span></li>`).join("")}</ol>` : ""}
       <p class="nota" data-i18n="portada.ayuda_sinoptico"></p>
     </section>
     <div class="rejilla portada-bajo">
@@ -64,7 +67,7 @@ function pintarKpis(ctx) {
     const k2 = o ? Math.min(1, (o.ok + o.nok) / o.cantidad) : 0;
     partes.push(tarjeta(t("portada.orden"), o ? `<span class="mono">${esc(o.orden_id)}</span>` : "–",
       esc(t("dest.calculado_web")),
-      o ? `<span>${esc(o.referencia)} · ${num(o.ok + o.nok, 0)} / ${num(o.cantidad, 0)}</span>
+      o ? `<span>${esc(o.referencia)} · ${esc(t("portada.de_la_orden", { hechas: num(o.ok + o.nok, 0), total: num(o.cantidad, 0) }))}</span>
         <i class="avance"><b style="width:${(100 * k2).toFixed(1)}%"></b></i>` : ""));
     const oee = kl?.oee;
     partes.push(tarjeta(t("portada.oee"), oee?.oee === null || oee?.oee === undefined ? "–" : pct(oee.oee, 0),

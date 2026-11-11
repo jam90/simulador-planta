@@ -68,9 +68,12 @@ let fallos = 0;
 
 async function refrescar(que) {
   try {
-    if (que.includes("vista")) { ctx.vista = await api("/api/vista", undefined, { silencioso: true }); ctx.recibido = performance.now(); }
+    if (que.includes("vista")) {
+      ctx.vista = await api("/api/vista", undefined, { silencioso: true });
+      ctx.kpis = ctx.vista.kpis;          // los indicadores vienen con la vista: mismo instante
+      ctx.recibido = performance.now();
+    }
     if (que.includes("estado")) ctx.estado = await api("/api/estado", undefined, { silencioso: true });
-    if (que.includes("kpis")) ctx.kpis = await api("/api/kpis", undefined, { silencioso: true });
     fallos = 0;
     $("#sin-conexion").hidden = true;
   } catch (e) {
@@ -82,7 +85,7 @@ async function refrescar(que) {
 }
 
 /** Pide ya los datos nuevos (tras pulsar un botón), sin esperar al siguiente ciclo. */
-const refrescarYa = () => refrescar(["vista", "estado", "kpis"]);
+const refrescarYa = () => refrescar(["vista", "estado"]);
 alRefrescar(refrescarYa);
 
 // --- Cabecera y averías en curso -----------------------------------------------------
@@ -92,6 +95,7 @@ function pintarCabecera() {
   const v = ctx.vista, e = ctx.estado;
   if (!v || !e) return;
   texto($("#cab-hora"), v.hora_local || "–");
+  $("#cab-pausa").hidden = !v.pausado;
   texto($("#cab-turno"), nombreTurno(v.turno));
   poner($("#cab-lineas"), v.lineas.map((l) =>
     `<div class="dato-cab"><small>${esc(l.id)} · ${esc(l.referencia)}</small><b>${insignia(l.estado)}</b></div>`).join(""));
@@ -182,7 +186,7 @@ async function iniciar() {
     ctx.plano = await api("/api/plano");
     fijarZona(ctx.plano.zona_horaria);
   } catch { ctx.plano = { equipos: [], lineas: [] }; }
-  await refrescar(["vista", "estado", "kpis"]);
+  await refrescar(["vista", "estado"]);
   navegar();
   window.addEventListener("hashchange", navegar);
   let n = 0;
@@ -190,7 +194,6 @@ async function iniciar() {
     n++;
     const que = ["vista"];
     if (n % 2 === 0) que.push("estado");
-    if (n % 5 === 0) que.push("kpis");
     refrescar(que);
   }, 1000);
 }

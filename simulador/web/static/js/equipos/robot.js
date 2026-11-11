@@ -9,6 +9,7 @@ import { marcarEstado } from "./generico.js";
 import { ACTIVOS, attr, brazo, clase, fase, faseRapida, interpolar, partes, piloto, zonaClic } from "./svg.js";
 
 const W = 220, H = 290;
+const ZONA = 164;
 const HOMBRO = [100, 128];
 const L1 = 76, L2 = 72;
 const CASA = [92, 40];
@@ -47,7 +48,8 @@ export default {
   imagen: (meta) => (meta.variante === "soldadura" ? "robot-soldadura" : "robot-pinza"),
   icono(meta) {
     const [sx, sy] = HOMBRO;
-    return `<g class="robot v-${meta.variante || "pinza"}">${zonaClic(W, H)}
+    // La zona de clic (y el halo de avería) no llega hasta el palé de la CNC, que está al lado
+    return `<g class="robot v-${meta.variante || "pinza"}">${zonaClic(ZONA, H)}
       <rect class="m" x="80" y="140" width="40" height="${H - 150}" rx="3"/>
       <rect class="os" x="60" y="${H - 10}" width="80" height="10" rx="2"/>
       <rect class="m2" x="72" y="124" width="56" height="22" rx="6"/>

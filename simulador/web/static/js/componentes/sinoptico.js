@@ -16,6 +16,14 @@ export { estadoEn };
 
 const RITMO = { PRODUCCION: 1, ARRANQUE: 0.5 };
 
+/** Motivo del estado de la línea en tm ([t, estado, motivo] guardados por el observador). */
+function motivoEn(serie, tm, porDefecto) {
+  if (!serie?.length || tm === null) return porDefecto;
+  let m = serie[0][2];
+  for (const [t0, , mot] of serie) { if (t0 <= tm) m = mot; else break; }
+  return m ?? porDefecto;
+}
+
 /** Coloca los equipos que no tienen posición en el plano, en fila al fondo de su zona. */
 function autocolocar(plano) {
   const libres = {};
@@ -89,6 +97,8 @@ export class Sinoptico {
       ${detras.map(copias).join("")}
       ${(p.cintas || []).map((c) => htmlCinta(c, p.suelo)).join("")}
       ${delante.map(copias).join("")}
+      ${(p.cintas || []).flatMap((c) => (c.pasos || []).map((q) => `<g class="paso" transform="translate(${q.x} ${q.y})">
+        <circle r="11"/><text y="4" text-anchor="middle">${q.n}</text></g>`)).join("")}
       <g class="avisos-linea">${(p.cintas || []).map((c) => `<g class="aviso-linea" data-aviso-linea="${esc(c.linea)}"
           transform="translate(${(tramos(c)[0][0] + tramos(c).at(-1)[1]) / 2} ${c.y - 190})"></g>`).join("")}</g>
       <g class="bocadillos" data-p="bocadillos"></g>
@@ -136,7 +146,7 @@ export class Sinoptico {
       };
     }
     // Valor corto bajo el nombre
-    for (const el of this.svg.querySelectorAll("[data-clave]")) {
+    for (const el of this.svg.querySelectorAll("text.clave-eq[data-clave]")) {
       const d = this.datos[el.dataset.clave];
       const s = d ? modulo(d.meta.tipo).clave(d) || "" : "";
       if (el.textContent !== s) el.textContent = s;
@@ -147,7 +157,7 @@ export class Sinoptico {
       const caudal = d?.valores.caudal_m3_min ?? 0;
       tb.classList.toggle("fluye", caudal > 0.05 && !reloj.enPausa());
       tb.style.animationDuration = `${Math.max(0.6, 3 / Math.max(caudal, 0.3)).toFixed(2)}s`;
-      tb.classList.toggle("fuga", !!d?.avisos?.fuga_aire);
+      tb.classList.toggle("con-fuga", !!d?.avisos?.fuga_aire);
     }
     this._pintarEstados(true);
     for (const { linea, cinta } of this.cintas) {
@@ -181,7 +191,7 @@ export class Sinoptico {
       if ((est === "AVERIA" || est === "MICROPARADA") && l.causa && l.estado === est) {
         lista.push({ id: l.causa, codigo: l.codigo, texto: l.motivo, nivel: est === "AVERIA" ? "error" : "aviso" });
       }
-      this._avisoLinea(l, est);
+      this._avisoLinea(l, est, motivoEn(l.estados, tm, l.motivo));
     }
     for (const d of Object.values(this.datos)) {
       const p = modulo(d.meta.tipo).problema(d);
@@ -203,8 +213,9 @@ export class Sinoptico {
       const e = this.plano.equipos.find((x) => x.id === b.id);
       if (!nodo || !e) return "";
       const [w] = modulo(e.tipo).caja;
-      const x = Math.min(this.plano.lienzo[0] - 170, Math.max(170, e.posicion.x + w / 2));
-      const y = Math.max(40, e.posicion.y - 14);
+      const [bx, by] = e.posicion.bocadillo || [e.posicion.x + w / 2, e.posicion.y - 14];
+      const x = Math.min(this.plano.lienzo[0] - 170, Math.max(170, bx));
+      const y = Math.max(40, by);
       const texto = (b.texto || "").length > 42 ? `${b.texto.slice(0, 41)}…` : b.texto || "";
       const linea1 = b.codigo ? `${b.codigo} · ${b.id}` : b.id;
       return `<g class="bocadillo ${b.nivel}" transform="translate(${x} ${y})">
@@ -214,20 +225,20 @@ export class Sinoptico {
     }).join("");
   }
 
-  _avisoLinea(l, est) {
+  _avisoLinea(l, est, motivo) {
     const g = this.svg.querySelector(`[data-aviso-linea="${CSS.escape(l.id)}"]`);
     if (!g) return;
     const mostrar = ["MANTENIMIENTO", "CAMBIO_FORMATO", "PARADA"].includes(est);
-    const s = mostrar ? `${est}|${l.motivo}` : "";
-    if (g.dataset.clave === s) return;
-    g.dataset.clave = s;
+    const s = mostrar ? `${est}|${motivo}` : "";
+    if (g.dataset.cartel === s) return;
+    g.dataset.cartel = s;
     g.innerHTML = mostrar ? `<g class="cartel e-${esc(est)}">
       <rect x="-190" y="-26" width="380" height="52" rx="10"/>
       ${est === "MANTENIMIENTO" ? '<path class="icono-cartel" d="M-164 6 l14 -14 a8 8 0 0 1 10 -10 l-5 5 l3 3 l5 -5 a8 8 0 0 1 -10 10 l-14 14 z"/>'
         : est === "CAMBIO_FORMATO" ? '<path class="icono-cartel" d="M-170 -6 h22 l-6 -6 M-148 6 h-22 l6 6" fill="none"/>'
         : '<rect class="icono-cartel" x="-168" y="-10" width="7" height="20" rx="1"/><rect class="icono-cartel" x="-156" y="-10" width="7" height="20" rx="1"/>'}
       <text class="c1" x="-136" y="-3">${esc(t(`estado.${est}`))}</text>
-      <text class="c2" x="-136" y="14">${esc(l.motivo || t("portada.fuera_turno"))}</text></g>` : "";
+      <text class="c2" x="-136" y="14">${esc(motivo || t("portada.fuera_turno"))}</text></g>` : "";
   }
 
   _bucle(ahora) {

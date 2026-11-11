@@ -17,20 +17,21 @@
 <body>
 <header class="cabecera">
   <div class="barra">
-    <a class="marca" href="#/"><img src="/static/img/logo.svg" alt=""><span data-i18n="app.titulo">Simulador de planta</span></a>
+    <a class="marca" href="#/" data-i18n-title="app.titulo" title="Simulador de planta"><img src="/static/img/logo.svg" alt=""><span data-i18n="app.titulo">Simulador de planta</span></a>
     <nav class="navegacion" aria-label="Secciones">
       <a href="#/" data-ruta="portada" data-i18n="nav.planta">Planta</a>
       <a href="#/produccion" data-ruta="produccion" data-i18n="nav.produccion">Producción</a>
       <a href="#/energia" data-ruta="energia" data-i18n="nav.energia">Energía</a>
       <a href="#/configuracion" data-ruta="configuracion" data-i18n="nav.configuracion">Datos y salidas</a>
     </nav>
-    <div class="dato-cab"><small data-i18n="cab.hora">Hora simulada</small><b id="cab-hora">–</b></div>
+    <div class="dato-cab"><small data-i18n="cab.hora">Hora simulada</small>
+      <b><span id="cab-hora">–</span> <span id="cab-pausa" class="estado e-PARADA en-pausa" hidden data-i18n="cab.en_pausa">En pausa</span></b></div>
     <div class="dato-cab"><small data-i18n="cab.turno">Turno</small><b id="cab-turno">–</b></div>
     <div class="cab-lineas" id="cab-lineas"></div>
     <div class="separa"></div>
     <div class="controles">
-      <label><span data-i18n="cab.velocidad">Velocidad</span>
-        <select id="acelerar">
+      <label><span class="etiqueta-vel" data-i18n="cab.velocidad">Velocidad</span>
+        <select id="acelerar" data-i18n-title="cab.velocidad_ayuda">
           <option value="1">×1</option><option value="10">×10</option><option value="60">×60</option>
           <option value="600">×600</option><option value="3600">×3600</option>
         </select>

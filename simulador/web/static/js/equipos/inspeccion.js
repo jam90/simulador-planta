@@ -37,7 +37,7 @@ export default {
     clase(p.nok, "encendida", d.ultimo === false);
   },
   clave: (d) => (d.valores.piezas_inspeccionadas_total !== undefined
-    ? `NOK ${num(d.valores.piezas_nok_total, 0)} / ${num(d.valores.piezas_inspeccionadas_total, 0)}` : ""),
+    ? t("dest.nok_total", { nok: num(d.valores.piezas_nok_total, 0), total: num(d.valores.piezas_inspeccionadas_total, 0) }) : ""),
   destacados(d) {
     const v = d.valores;
     const total = v.piezas_inspeccionadas_total, nok = v.piezas_nok_total;

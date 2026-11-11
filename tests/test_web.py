@@ -38,6 +38,9 @@ def test_vista(web):
     assert 30 < fin - ini < 60
     assert v["equipos"]["mes"]["valores"] is None            # el MES no publica telemetría
     assert "presion_bar" in v["equipos"]["compresor-01"]["valores"]
+    assert v["kpis"]["lineas"]["L1"]["piezas"] > 0          # indicadores del mismo instante que la vista
+    assert all(len(e) == 3 for e in linea["estados"])        # (hora, estado, motivo)
+    assert any(e[1] == "PRODUCCION" for e in linea["estados"])
 
 
 def test_tendencia_y_recientes(web):

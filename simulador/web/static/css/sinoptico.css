@@ -143,7 +143,7 @@
 @keyframes fuga { to { stroke-dashoffset: -10; } }
 .sinoptico .tuberia { fill: none; stroke: color-mix(in srgb, var(--s-aire) 30%, var(--s-metal-2)); stroke-width: 6; stroke-linejoin: round; }
 .sinoptico .tuberia.fluye { stroke: var(--s-aire); stroke-opacity: .65; stroke-dasharray: 10 8; animation: flujo 1.5s linear infinite; }
-.sinoptico .tuberia.fuga { stroke: var(--e-microparada); }
+.sinoptico .tuberia.con-fuga { stroke: var(--e-microparada); stroke-opacity: .9; }
 @keyframes flujo { to { stroke-dashoffset: -36; } }
 .sinoptico .cable-red { fill: none; stroke: var(--s-oscuro); stroke-width: 3; }
 
@@ -172,6 +172,10 @@
 .sv .flecha path { stroke: var(--acento); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .sv .flecha.exporta { transform: rotate(180deg); transform-box: fill-box; transform-origin: center; }
 .sv .flecha.exporta path { stroke: var(--ok); }
+
+/* Pasos del proceso numerados (los explica la leyenda de la portada) */
+.sinoptico .paso circle { fill: var(--azul); stroke: var(--panel); stroke-width: 2; }
+.sinoptico .paso text { font: 700 12px var(--fuente); fill: #fff; }
 
 /* Bocadillos de problema y cartel de línea */
 .bocadillo rect, .bocadillo path { fill: var(--panel); stroke: var(--e-averia); stroke-width: 2; }

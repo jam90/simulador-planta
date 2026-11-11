@@ -10,6 +10,7 @@ IMPORTANTE: solo lee. No llama a nada que consuma números aleatorios
 (muestrear, ruido, rng...): si lo hiciera, cambiarían los datos generados.
 """
 import math
+import re
 from collections import deque
 from datetime import datetime
 
@@ -22,6 +23,8 @@ N_ESTADOS = 200
 N_EVENTOS = 300
 N_INSPECCIONES = 60
 N_ORDENES = 30
+
+MOTIVO = re.compile(r" -> \w+ \((.*)\)$")
 
 # Atributos (inicio, fin) del ciclo en curso o del último, según el tipo de equipo
 ATRIBUTOS_CICLO = (("ciclo_ini", "ciclo_fin"), ("mec_ini", "mec_fin"))
@@ -83,12 +86,15 @@ class Observador:
                 cola.append((cambios.get(eq.linea_id, t) if cola else t - dt, eq.estado))
 
     def _linea(self, t, dt, linea, eventos, inspecciones):
+        # Cambios de estado de la línea: (hora, estado, motivo). El motivo va en el mensaje del
+        # evento («L1: A -> B (motivo)»), para que la animación, que va con retraso, muestre el suyo.
         estados = self.estados.setdefault(linea.id, deque(maxlen=N_ESTADOS))
         if not estados:
-            estados.append((t - dt, linea.estado))
+            estados.append((t - dt, linea.estado, linea.motivo))
         for e in eventos:
             if e["equipo"] == linea.plc.id and e["tipo_evento"] == "cambio_estado":
-                estados.append((epoch(e["ts"]), e["datos"]["nuevo"]))
+                m = MOTIVO.search(e["mensaje"])
+                estados.append((epoch(e["ts"]), e["datos"]["nuevo"], m.group(1) if m else None))
         # Piezas: la estación de calidad da la hora y el resultado exactos; si no hay, el PLC
         piezas = self.piezas.setdefault(linea.id, deque(maxlen=N_PIEZAS))
         total = linea.plc.piezas_ok + linea.plc.piezas_nok

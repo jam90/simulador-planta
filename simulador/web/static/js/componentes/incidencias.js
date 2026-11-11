@@ -14,17 +14,18 @@ export function incidenciasDe(eq) {
   return lista;
 }
 
-/** HTML del bloque de incidencias (vacío si el equipo no admite ninguna). */
+const DURACION = { averia: 30, microparada: 2, fallo_inversor: 60 };   // minutos propuestos
+
+/** HTML del bloque de incidencias (vacío si el equipo no admite ninguna). Cada una con su duración. */
 export function htmlIncidencias(eq) {
   const lista = incidenciasDe(eq);
   if (!lista.length) return "";
-  const conDuracion = lista.some((i) => i !== "fuga_aire");
   return `<div class="incidencias" data-equipo-inc="${esc(eq.id)}">
     <p class="nota">${esc(t("inc.ayuda"))}</p>
-    ${conDuracion ? `<label class="fila">${esc(t("inc.duracion"))}
-      <input type="number" class="inc-min" value="${lista.includes("averia") ? 30 : 60}" min="1" max="1440"> min</label>` : ""}
     ${lista.map((i) => `<div class="incidencia">
-      <button data-inc="${i}" ${i === "fuga_aire" ? 'data-fuga="1"' : ""}>${esc(t(`inc.${i}`))}</button>
+      <div class="accion-inc"><button data-inc="${i}" ${i === "fuga_aire" ? 'data-fuga="1"' : ""}>${esc(t(`inc.${i}`))}</button>
+        ${DURACION[i] ? `<label class="duracion-inc">${esc(t("inc.duracion"))}
+          <input type="number" class="inc-min" value="${DURACION[i]}" min="1" max="1440"> min</label>` : ""}</div>
       <p class="nota">${esc(t(`inc.${i}_ayuda`))}</p></div>`).join("")}
   </div>`;
 }
@@ -47,7 +48,7 @@ export function escucharIncidencias(raiz) {
     if (!b) return;
     const bloque = b.closest("[data-equipo-inc]");
     const equipo = bloque.dataset.equipoInc;
-    const minutos = Number($(".inc-min", bloque)?.value || 30);
+    const minutos = Number($(".inc-min", b.closest(".incidencia"))?.value || DURACION[b.dataset.inc] || 30);
     let incidencia = b.dataset.inc;
     if (incidencia === "fuga_aire" && b.dataset.activa) incidencia = "fin_fuga_aire";
     const cuerpo = { incidencia, minutos };

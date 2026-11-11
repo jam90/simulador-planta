@@ -1,5 +1,5 @@
 {
-  "_ayuda": "Dónde se dibuja cada equipo en el sinóptico (coordenadas del lienzo, arriba a la izquierda de su dibujo). Un equipo que no esté aquí se coloca solo, en su zona. capa: fondo (detrás de la cinta) o frente. repetir: más copias del mismo equipo. cintas[].proceso: posiciones del recorrido de las piezas por la célula (componentes/celda.js); sin él, las piezas solo avanzan por la cinta. etiqueta: [x, y] del nombre, si no va centrado debajo.",
+  "_ayuda": "Dónde se dibuja cada equipo en el sinóptico (coordenadas del lienzo, arriba a la izquierda de su dibujo). Un equipo que no esté aquí se coloca solo, en su zona. capa: fondo (detrás de la cinta) o frente. repetir: más copias del mismo equipo. cintas[].proceso: posiciones del recorrido de las piezas por la célula (componentes/celda.js); sin él, las piezas solo avanzan por la cinta. etiqueta: [x, y] del nombre, si no va centrado debajo. bocadillo: [x, y] de la punta del bocadillo de problema. cintas[].pasos: marcas numeradas de los pasos del proceso (los explica la leyenda de la portada).",
   "lienzo": [1600, 760],
   "suelo": 700,
   "edificio": { "x0": 20, "x1": 1440, "techo": 150 },
@@ -11,9 +11,10 @@
   "cintas": [
     {
       "linea": "L1", "y": 560, "tramos": [[210, 330], [670, 1040]], "rechazo": 958,
+      "pasos": [{ "n": 1, "x": 300, "y": 420 }, { "n": 2, "x": 452, "y": 420 }, { "n": 3, "x": 812, "y": 420 }, { "n": 4, "x": 990, "y": 420 }],
       "equipos": { "carga": "robot-01", "cnc": "cnc-01", "soldadura": "robot-02", "calidad": "calidad-01" },
       "proceso": { "entrada": 212, "recoge": 290, "pale": [443, 534], "mecanizado": [536, 570],
-                   "salida": 672, "soldadura": 802, "calidad": 928, "fin": 1024, "rechazo": 948 }
+                   "trampilla": [590, 652], "salida": 672, "soldadura": 802, "calidad": 928, "fin": 1024, "rechazo": 948 }
     }
   ],
   "tuberias": [
@@ -33,7 +34,7 @@
     "ambiente-01": { "x": 620, "y": 226 },
     "iluminacion-01": { "x": 330, "y": 152, "repetir": [[600, 152], [870, 152], [1045, 152], [1335, 152]], "etiqueta": [360, 198] },
     "climatizacion-01": { "x": 1150, "y": 205 },
-    "compresor-01": { "x": 1120, "y": 540, "etiqueta": [1215, 716] },
+    "compresor-01": { "x": 1120, "y": 540, "etiqueta": [1215, 716], "bocadillo": [1200, 528] },
     "red-sg": { "x": 1355, "y": 390 },
     "fv-01": { "x": 160, "y": 72, "etiqueta": [900, 100], "ancla": "start" },
     "contador-general": { "x": 1460, "y": 470, "etiqueta": [1525, 716] }

@@ -115,7 +115,7 @@
   "ficha.tipo": "Type",
   "ficha.linea": "Line",
   "ficha.enviar": "Send its data",
-  "ficha.dibujo_ayuda": "Illustrative animation: it moves according to the real state and cycles of the equipment.",
+  "ficha.dibujo_ayuda": "Illustrative animation: it moves according to the real state and cycles of the equipment, a few seconds behind the simulation (so that it only draws what has already happened). The state at the top and the telemetry are up to the moment.",
   "ficha.tendencia": "Live trend",
   "ficha.tendencia_ayuda": "Last few minutes, since you opened the simulator. The history is in the files.",
   "ficha.recientes": "What is happening",
@@ -149,7 +149,7 @@
   "dest.avance_orden": "Progress",
   "dest.calculado_web": "Calculated by the web page (not in the data)",
   "dest.inspeccionadas": "Inspected",
-  "dest.pct_nok": "NOK parts",
+  "dest.pct_nok": "% NOK",
   "dest.presion": "Pressure",
   "dest.caudal": "Flow",
   "dest.temp_aceite": "Oil temperature",
@@ -209,5 +209,14 @@
   "portada.avisos": "Latest warnings",
   "portada.avisos_ayuda": "Alarms, breakdowns and notable changes since you opened the simulator.",
   "portada.sin_avisos": "No warnings yet.",
-  "portada.fuera_turno": "Off shift"
+  "portada.fuera_turno": "Off shift",
+  "cab.en_pausa": "Paused",
+  "cab.velocidad_ayuda": "Simulation speed (×1 = real time)",
+  "dest.nok_total": "NOK {nok} / {total} in total",
+  "portada.desliza": "Swipe the diagram sideways to see the whole plant.",
+  "portada.de_la_orden": "{hechas} of {total} parts in the order",
+  "portada.paso1": "Loading: robot-01 picks the raw part from the conveyor and places it on the CNC loading pallet.",
+  "portada.paso2": "Machining: when the previous part is finished, the pallets swap; the CNC machines the part and it comes out onto the conveyor.",
+  "portada.paso3": "Welding: robot-02 welds the machined part.",
+  "portada.paso4": "Quality: its dimensions are measured; good parts go to the box and bad ones to the reject bin."
 }

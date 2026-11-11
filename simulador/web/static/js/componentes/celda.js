@@ -24,6 +24,7 @@ import { estadoEn } from "../reloj.js";
 
 const RITMO = { PRODUCCION: 1, ARRANQUE: 0.5 };   // velocidad de la cinta (arranque: la mitad)
 // Duraciones dibujadas, en fracción del intervalo entre piezas (con 45 s: 3 s, 4 s...)
+const A_SOLDADURA = 0.22, A_CALIDAD = 0.14;   // trayectos por la cinta de salida
 const CAMBIO_PALE = 3 / 45, MEDIDA = 4 / 45, A_CAJA = 3 / 45, A_RECHAZO = 1.2 / 45, CAIDA = 0.6 / 45, QUEDA = 2.5 / 45;
 const CICLO_RAPIDO_S = 2.6;      // segundos de reloj por pieza en el modo rápido
 // Duración de cada ciclo representativo, en fracción del intervalo entre piezas (como los reales)
@@ -78,13 +79,18 @@ export class Celda {
   /** Posición de la pieza k en el instante tm: {x, y, ok, oculta, midiendo, fin}. */
   _posicion(k, A, tm, l, vista) {
     const P = this.p, I = l.intervalo_pieza, y = this.yCinta;
-    const CAMBIO_PALE_S = CAMBIO_PALE * I;
     const tk = A[k][0];
     if (tm < tk) return null;
     const avance = (desde, duracion) => duracion <= 0 ? 1
       : acotar((this._marcha(l, tm) - this._marcha(l, desde)) / duracion);
     const entre = (a, b, k2) => a + (b - a) * suave(acotar(k2));
-    const viaje = (desde, hasta) => (Number.isFinite(hasta) ? Math.max(0.5, Math.min(0.3 * I, 0.85 * (hasta - desde))) : 0.3 * I);
+    // Cambio de palé: no puede durar más que el hueco hasta que la CNC empieza el mecanizado siguiente
+    const cambio = (desde, kSig) => {
+      const sig = A[kSig];
+      const cs = sig && this._ciclo(vista, this.eq.cnc, sig[0], I);
+      const hueco = cs ? cs[0] - desde : sig ? sig[0] - desde : Infinity;
+      return Math.max(0.2, Math.min(CAMBIO_PALE * I, 0.8 * hueco));
+    };
 
     // 1. Entra por la cinta de entrada y espera al robot de carga
     const r = this._ciclo(vista, this.eq.carga, tk, I) || [tk, tk + 0.93 * I];
@@ -97,8 +103,9 @@ export class Celda {
     const entra = c ? Math.max(c[1], deja + 0.5) : tk + 0.97 * I;
     const [mx, my] = P.mecanizado;
     if (tm < entra) return { x: P.pale[0], y: P.pale[1] };
-    if (tm < entra + CAMBIO_PALE_S) {
-      const f = (tm - entra) / CAMBIO_PALE_S;
+    const dEntra = cambio(entra, k + 1);
+    if (tm < entra + dEntra) {
+      const f = (tm - entra) / dEntra;
       return { x: entre(P.pale[0], mx, f), y: entre(P.pale[1], my, f) - 18 * Math.sin(Math.PI * f) };
     }
     // 4. Dentro de la máquina: la mecaniza en el ciclo siguiente
@@ -106,22 +113,29 @@ export class Celda {
     const c1 = k1 && this._ciclo(vista, this.eq.cnc, k1[0], I);
     const sale = c1 ? c1[1] : k1 ? k1[0] + 0.97 * I : Infinity;
     if (tm < sale) return { x: mx, y: my };
-    if (tm < sale + CAMBIO_PALE_S) {
-      const f = (tm - sale) / CAMBIO_PALE_S;
-      return { x: entre(mx, P.salida, f), y: entre(my, y, f) - 14 * Math.sin(Math.PI * f) };
+    // Sale por la trampilla del lado derecho (por dentro de la máquina, sin pasar por el panel)
+    const dSale = cambio(sale, k + 2);
+    if (tm < sale + dSale) {
+      const f = (tm - sale) / dSale;
+      const [xDentro, xFuera] = P.trampilla;
+      if (f < 0.45) return { x: entre(mx, xDentro, f / 0.45), y: my };
+      if (f < 0.7) return { oculta: true };
+      return { x: entre(xFuera, P.salida, (f - 0.7) / 0.3), y };
     }
-    // 5. Por la cinta de salida hasta el robot de soldadura, que la suelda en el ciclo siguiente
-    const t0 = sale + CAMBIO_PALE_S;
+    // 5. Por la cinta de salida hasta el robot de soldadura, que la suelda en el ciclo siguiente.
+    //    Los trayectos duran siempre lo mismo (si dependieran del ciclo siguiente, la pieza saltaría
+    //    al conocerse este).
+    const t0 = sale + dSale;
     const k2 = A[k + 2];
     const s = k2 && this._ciclo(vista, this.eq.soldadura, k2[0], I);
     const sIni = s ? s[0] + 0.25 * (s[1] - s[0]) : k2 ? k2[0] + 0.25 * I : Infinity;
     const sFin = s ? s[0] + 0.82 * (s[1] - s[0]) : k2 ? k2[0] + 0.82 * I : Infinity;
-    if (tm < sIni) return { x: entre(P.salida, P.soldadura, avance(t0, viaje(t0, sIni))), y };
+    if (tm < sIni) return { x: entre(P.salida, P.soldadura, avance(t0, A_SOLDADURA * I)), y };
     if (tm < sFin) return { x: P.soldadura, y };
     // 6. A la estación de calidad, que la mide en el ciclo siguiente
     const k3 = A[k + 3];
     const mide = k3 ? k3[0] : Infinity;
-    if (tm < mide) return { x: entre(P.soldadura, P.calidad, avance(sFin, viaje(sFin, mide))), y };
+    if (tm < mide) return { x: entre(P.soldadura, P.calidad, avance(sFin, A_CALIDAD * I)), y };
     const ok = k3[1];
     const medida = tm - mide;
     if (medida < MEDIDA * I) return { x: P.calidad, y, ok: medida >= 0.4 * MEDIDA * I ? ok : null, midiendo: medida / (MEDIDA * I) };
@@ -204,7 +218,9 @@ export class Celda {
     const vivas = new Set();
     let bajo = null, ultimo = null, ultimaMedida = -Infinity;
     for (let k = 0; k < A.length; k++) {
-      if (A[k][0] < tm - 12 * l.intervalo_pieza) continue;
+      // Solo las últimas piezas: las anteriores ya han salido. Por índice y no por tiempo, para que
+      // tras una parada larga (la noche, una avería) cada pieza siga esperando en su estación.
+      if (k < A.length - 10) continue;
       const pos = this._posicion(k, A, tm, l, vista);
       if (!pos || pos.fin) continue;
       const clave = String(A[k][0]);

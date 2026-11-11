@@ -268,6 +268,7 @@ def crear_app(motor) -> FastAPI:
                 "turno": planta.calendario.turno(t) if t else None,
                 "modo": planta.calendario.modo(t) if t else None,
                 "lineas": lineas, "equipos": equipos,
+                "kpis": calcular_kpis(),          # en la misma respuesta: todas las cifras del mismo instante
                 "incidencias": {
                     "fuga_aire": bool(compresor and "fuga_aire" in compresor.incidencias),
                     "fallo_inversor": bool(fv and fv.fallo_hasta is not None),
@@ -281,29 +282,32 @@ def crear_app(motor) -> FastAPI:
         with motor.lock:
             return obs.tendencia(equipo_id, campos.split(",") if campos else None, max(1, min(n, 720)))
 
+    def calcular_kpis():
+        """Indicadores calculados por la web (no están en los datos que publica el simulador)."""
+        contador = planta.equipo_de_tipo("contador_general")
+        fv = planta.equipo_de_tipo("fotovoltaica")
+        cg = (motor.ultimo_por_equipo.get(contador.id) or {}).get("valores", {}) if contador else {}
+        vfv = (motor.ultimo_por_equipo.get(fv.id) or {}).get("valores", {}) if fv else {}
+        consumo = sum((motor.ultimo_por_equipo.get(e.id) or {}).get("valores", {}).get("potencia_activa_kw", 0)
+                      for e in planta.equipos.values() if e.tipo == "analizador_red")
+        return {
+            "lineas": {l.id: obs.kpis_linea(l) for l in planta.lineas.values()},
+            "energia": {
+                "consumo_kw": consumo if consumo else None,
+                "generacion_kw": vfv.get("potencia_generada_kw"),
+                "neto_kw": cg.get("potencia_activa_kw"),
+                "periodo": cg.get("periodo_tarifario"), "precio_eur_kwh": cg.get("precio_eur_kwh"),
+                "contratada_kw": cg.get("potencia_contratada_kw"),
+                "media_15min_kw": cg.get("potencia_media_15min_kw"), "maximetro_kw": cg.get("maximetro_kw"),
+                "coste_acumulado_eur": cg.get("coste_acumulado_eur"),
+                "turno": obs.energia_turno(),
+            },
+        }
+
     @app.get("/api/kpis")
     def kpis():
-        """Indicadores calculados por la web (no están en los datos que publica el simulador)."""
         with motor.lock:
-            contador = planta.equipo_de_tipo("contador_general")
-            fv = planta.equipo_de_tipo("fotovoltaica")
-            cg = (motor.ultimo_por_equipo.get(contador.id) or {}).get("valores", {}) if contador else {}
-            vfv = (motor.ultimo_por_equipo.get(fv.id) or {}).get("valores", {}) if fv else {}
-            consumo = sum((motor.ultimo_por_equipo.get(e.id) or {}).get("valores", {}).get("potencia_activa_kw", 0)
-                          for e in planta.equipos.values() if e.tipo == "analizador_red")
-            return {
-                "lineas": {l.id: obs.kpis_linea(l) for l in planta.lineas.values()},
-                "energia": {
-                    "consumo_kw": consumo if consumo else None,
-                    "generacion_kw": vfv.get("potencia_generada_kw"),
-                    "neto_kw": cg.get("potencia_activa_kw"),
-                    "periodo": cg.get("periodo_tarifario"), "precio_eur_kwh": cg.get("precio_eur_kwh"),
-                    "contratada_kw": cg.get("potencia_contratada_kw"),
-                    "media_15min_kw": cg.get("potencia_media_15min_kw"), "maximetro_kw": cg.get("maximetro_kw"),
-                    "coste_acumulado_eur": cg.get("coste_acumulado_eur"),
-                    "turno": obs.energia_turno(),
-                },
-            }
+            return calcular_kpis()
 
     @app.get("/api/recientes")
     def recientes(equipo: str | None = None, linea: str | None = None, n: int = 30):
