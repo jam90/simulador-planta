@@ -239,6 +239,7 @@ export class Sinoptico {
       this._pintarEstados();
       const rapido = reloj.esRapido();
       const pausa = reloj.enPausa();
+      const repres = {};
       for (const { linea, cinta } of this.cintas) {
         const l = this.vista.lineas.find((x) => x.id === linea);
         const est = estadoEn(l.estados, tm, l.estado);
@@ -248,11 +249,19 @@ export class Sinoptico {
         for (const d of Object.values(this.datos)) {
           if (d.meta.linea === linea) { d.bajo = r.bajo; d.ultimo = r.ultimo; }
         }
+        r.linea = linea;
+        repres[linea] = r.ciclos ? r : null;
       }
       for (const d of Object.values(this.datos)) {
         const mod = modulo(d.meta.tipo);
         if (!mod.animar) continue;
-        for (const nodo of this.nodos[d.id] || []) mod.animar(nodo, d, tm, rapido && !pausa);
+        // En modo rápido, los equipos de la célula se mueven con los ciclos representativos
+        const rep = repres[d.meta.linea];
+        const ciclos = rep?.ciclos[d.id];
+        for (const nodo of this.nodos[d.id] || []) {
+          if (ciclos) mod.animar(nodo, { ...d, ciclos }, rep.tm, false);
+          else mod.animar(nodo, d, tm, rapido && !pausa);
+        }
       }
     }
     this.marco = requestAnimationFrame(this._bucle);

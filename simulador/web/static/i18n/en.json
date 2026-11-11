@@ -189,7 +189,7 @@
   "portada.planta_vivo": "The plant, live",
   "portada.sinoptico_aria": "Animated diagram of the plant and its equipment",
   "portada.ayuda_sinoptico": "Click a piece of equipment to see its page. The animation is illustrative: it moves with the real state and cycles, a few seconds behind the simulation so that it only draws what has already happened. The parts on the conveyor represent the flow; the simulator does not give their position.",
-  "portada.modo_rapido": "Fast mode (×{x}): movements are shown in a loop, without following each cycle",
+  "portada.modo_rapido": "Fast mode (×{x}): the process is shown with representative cycles, slower than the real ones so it can be followed. States, breakdowns and values are the real ones.",
   "portada.piezas_turno": "Parts this shift",
   "portada.terminado": "finished",
   "portada.desde": "since",

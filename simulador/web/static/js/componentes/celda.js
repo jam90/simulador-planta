@@ -15,11 +15,19 @@
 //
 // Si el ciclo siguiente no llega (la línea está parada), cada pieza espera en su estación. Las
 // piezas solo avanzan por la cinta mientras la línea produce.
+//
+// Modo rápido (velocidad alta): un ciclo real dura menos de un segundo y no se podría seguir. Se
+// muestra el mismo recorrido con ciclos representativos de unos segundos (CICLO_RAPIDO_S), con
+// el resultado OK/NOK de las piezas reales recientes. Solo avanza mientras la línea produce de verdad.
 import { num } from "../util.js";
 import { estadoEn } from "../reloj.js";
 
 const RITMO = { PRODUCCION: 1, ARRANQUE: 0.5 };   // velocidad de la cinta (arranque: la mitad)
-const CAMBIO_PALE_S = 3;
+// Duraciones dibujadas, en fracción del intervalo entre piezas (con 45 s: 3 s, 4 s...)
+const CAMBIO_PALE = 3 / 45, MEDIDA = 4 / 45, A_CAJA = 3 / 45, A_RECHAZO = 1.2 / 45, CAIDA = 0.6 / 45, QUEDA = 2.5 / 45;
+const CICLO_RAPIDO_S = 2.6;      // segundos de reloj por pieza en el modo rápido
+// Duración de cada ciclo representativo, en fracción del intervalo entre piezas (como los reales)
+const CICLOS_REP = { carga: 0.93, cnc: 0.89, soldadura: 0.85 };
 const ANCHO = 20, ALTO = 12;
 const NS = "http://www.w3.org/2000/svg";
 
@@ -70,6 +78,7 @@ export class Celda {
   /** Posición de la pieza k en el instante tm: {x, y, ok, oculta, midiendo, fin}. */
   _posicion(k, A, tm, l, vista) {
     const P = this.p, I = l.intervalo_pieza, y = this.yCinta;
+    const CAMBIO_PALE_S = CAMBIO_PALE * I;
     const tk = A[k][0];
     if (tm < tk) return null;
     const avance = (desde, duracion) => duracion <= 0 ? 1
@@ -115,15 +124,15 @@ export class Celda {
     if (tm < mide) return { x: entre(P.soldadura, P.calidad, avance(sFin, viaje(sFin, mide))), y };
     const ok = k3[1];
     const medida = tm - mide;
-    if (medida < 4) return { x: P.calidad, y, ok: medida >= 1.5 ? ok : null, midiendo: medida / 4 };
+    if (medida < MEDIDA * I) return { x: P.calidad, y, ok: medida >= 0.4 * MEDIDA * I ? ok : null, midiendo: medida / (MEDIDA * I) };
     // 7. A su contenedor
-    const tt = medida - 4;
+    const tt = medida - MEDIDA * I;
     const destino = ok ? P.fin : P.rechazo;
-    const ida = ok ? 3 : 1.2;
-    const caida = acotar((tt - ida) / 0.6);
+    const ida = (ok ? A_CAJA : A_RECHAZO) * I;
+    const caida = acotar((tt - ida) / (CAIDA * I));
     const suelo = this.c.suelo - (ok ? 26 : 22);
     return { x: entre(P.calidad, destino, tt / ida), y: y + (suelo - y) * caida * caida, ok,
-      fin: tt > ida + 2.5 };
+      fin: tt > ida + QUEDA * I };
   }
 
   _rect(clave) {
@@ -149,16 +158,45 @@ export class Celda {
     el.classList.toggle("nok", pos.ok === false);
   }
 
-  /** Un fotograma. Devuelve {bajo, ultimo} para la estación de calidad. */
+  /**
+   * Un fotograma. Devuelve {bajo, ultimo} para la estación de calidad y, en modo rápido, también
+   * {tm, ciclos}: la hora y los ciclos representativos con los que deben moverse robots y CNC.
+   */
   animar(tm, l, vista, rapido, dtReal, pausa) {
-    const dtSim = this.tmPrevio === null || tm === null ? 0 : Math.max(0, tm - this.tmPrevio);
-    this.tmPrevio = tm;
     const corre = pausa ? 0 : RITMO[estadoEn(l.estados, tm, l.estado)] || 0;
+    const I = l.intervalo_pieza;
+    let t = tm, linea = l, datos = vista, extra = {};
+    if (rapido) {
+      this.tv ??= 12 * I;
+      this.tv += dtReal * (I / CICLO_RAPIDO_S) * corre;
+      ({ linea, datos } = this._representativo(l, this.tv));
+      t = this.tv;
+      extra = { tm: t, ciclos: Object.fromEntries(Object.entries(this.eq).map(([papel, id]) => [id, datos.equipos[id]?.ciclos])) };
+    }
+    const dt = this.tmPrevio === null || t === null || t < this.tmPrevio ? 0 : t - this.tmPrevio;
+    this.tmPrevio = t;
     const largo = this.c.tramos[0][1] - this.c.tramos[0][0];
-    this.desplazamiento = (this.desplazamiento
-      + (rapido ? 60 * dtReal : (largo / (0.3 * l.intervalo_pieza)) * dtSim) * corre) % 20;
+    this.desplazamiento = (this.desplazamiento + (largo / (0.3 * I)) * dt * (rapido ? 1 : corre)) % 20;
     this.estrias.setAttribute("transform", `translate(${this.desplazamiento.toFixed(1)} 0)`);
-    return rapido ? this._rapido(l) : this._normal(tm, l, vista);
+    return { ...this._normal(t, linea, datos), ...extra };
+  }
+
+  /** Línea y ciclos representativos para el modo rápido: una pieza cada intervalo nominal. */
+  _representativo(l, tv) {
+    const I = l.intervalo_pieza;
+    const reales = l.piezas.length ? l.piezas : [[0, true]];
+    const k0 = Math.floor(tv / I);
+    const piezas = [];
+    for (let k = k0 - 10; k <= k0 + 3; k++) {
+      const n = reales.length;
+      piezas.push([k * I, reales[((k % n) + n) % n][1]]);
+    }
+    const equipos = {};
+    for (const [papel, id] of Object.entries(this.eq)) {
+      const f = CICLOS_REP[papel];
+      if (f) equipos[id] = { ciclos: piezas.map(([t]) => [t, t + f * I]) };
+    }
+    return { linea: { ...l, piezas, estados: [[-1e9, "PRODUCCION"]], estado: "PRODUCCION" }, datos: { equipos } };
   }
 
   _normal(tm, l, vista) {
@@ -178,20 +216,5 @@ export class Celda {
     for (const [clave, el] of this.els) if (!vivas.has(clave)) { el.remove(); this.els.delete(clave); }
     if (ultimo !== null) this.ultimo = ultimo;
     return { bajo, ultimo: this.ultimo ?? null };
-  }
-
-  /** Modo rápido: una pieza quieta en cada estación (los ciclos duran menos que un fotograma). */
-  _rapido(l) {
-    const P = this.p, y = this.yCinta;
-    const ok = l.piezas.length ? l.piezas[l.piezas.length - 1][1] : true;
-    const puestos = [[P.recoge, y], P.pale, P.mecanizado, [P.soldadura, y], [P.calidad, y]];
-    const vivas = new Set();
-    puestos.forEach(([x, yy], i) => {
-      const clave = `rapido-${i}`;
-      vivas.add(clave);
-      this._pintar(this._rect(clave), { x, y: yy, ok: i === 4 ? ok : undefined });
-    });
-    for (const [clave, el] of this.els) if (!vivas.has(clave)) { el.remove(); this.els.delete(clave); }
-    return { bajo: null, ultimo: ok };
   }
 }

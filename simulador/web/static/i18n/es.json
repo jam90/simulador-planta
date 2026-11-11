@@ -189,7 +189,7 @@
   "portada.planta_vivo": "La planta, en vivo",
   "portada.sinoptico_aria": "Esquema animado de la planta con sus equipos",
   "portada.ayuda_sinoptico": "Pulsa un equipo para ver su ficha. La animación es ilustrativa: se mueve con el estado y los ciclos reales, unos segundos por detrás de la simulación para dibujar solo lo que ya ha pasado. Las piezas de la cinta representan el flujo; el simulador no da su posición.",
-  "portada.modo_rapido": "Modo rápido (×{x}): los movimientos se muestran en bucle, sin seguir cada ciclo",
+  "portada.modo_rapido": "Modo rápido (×{x}): el proceso se muestra con ciclos representativos, más lentos que los reales para poder seguirlo. Estados, averías y valores son los reales.",
   "portada.piezas_turno": "Piezas del turno",
   "portada.terminado": "terminado",
   "portada.desde": "desde las",

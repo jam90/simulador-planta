@@ -189,7 +189,7 @@
   "portada.planta_vivo": "Lantegia, zuzenean",
   "portada.sinoptico_aria": "Lantegiaren eskema animatua, bere ekipoekin",
   "portada.ayuda_sinoptico": "Sakatu ekipo bat haren fitxa ikusteko. Animazioa ilustratiboa da: benetako egoeraren eta zikloen arabera mugitzen da, simulazioa baino segundo batzuk atzerago, jada gertatu dena bakarrik marrazteko. Zintako piezek fluxua irudikatzen dute; simulagailuak ez du haien posizioa ematen.",
-  "portada.modo_rapido": "Modu azkarra (×{x}): mugimenduak begizta batean erakusten dira, ziklo bakoitzari jarraitu gabe",
+  "portada.modo_rapido": "Modu azkarra (×{x}): prozesua ziklo adierazgarriekin erakusten da, benetakoak baino motelagoak, jarraitu ahal izateko. Egoerak, matxurak eta balioak benetakoak dira.",
   "portada.piezas_turno": "Txandako piezak",
   "portada.terminado": "amaituta",
   "portada.desde": "noiztik:",
