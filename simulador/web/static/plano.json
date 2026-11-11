@@ -1,1 +1,36 @@
-{"lienzo": [1600, 900], "zonas": [], "equipos": {}}
+{
+  "_ayuda": "Dónde se dibuja cada equipo en el sinóptico (coordenadas del lienzo, arriba a la izquierda de su dibujo). Un equipo que no esté aquí se coloca solo, en su zona. capa: fondo (detrás de la cinta) o frente. repetir: más copias del mismo equipo. etiqueta: [x, y] del nombre, si no va centrado debajo.",
+  "lienzo": [1600, 760],
+  "suelo": 700,
+  "edificio": { "x0": 20, "x1": 1440, "techo": 150 },
+  "zonas": [
+    { "id": "L1", "x0": 30, "x1": 1110 },
+    { "id": "SG", "x0": 1110, "x1": 1440 }
+  ],
+  "tabiques": [{ "x": 1110, "y": 330 }],
+  "cintas": [
+    { "linea": "L1", "x0": 210, "x1": 1040, "y": 560, "calidad": 938, "rechazo": 958 }
+  ],
+  "tuberias": [
+    { "equipo": "compresor-01", "puntos": [[1270, 540], [1270, 380], [160, 380], [160, 532]] }
+  ],
+  "cables": [
+    { "equipo": "contador-general", "puntos": [[1460, 640], [1440, 640]] }
+  ],
+  "equipos": {
+    "mes": { "x": 40, "y": 530, "etiqueta": [75, 516] },
+    "plc-l1": { "x": 125, "y": 530 },
+    "robot-01": { "x": 260, "y": 410, "capa": "frente", "etiqueta": [360, 716] },
+    "cnc-01": { "x": 430, "y": 450, "capa": "fondo" },
+    "robot-02": { "x": 640, "y": 410, "capa": "frente", "etiqueta": [740, 716] },
+    "calidad-01": { "x": 880, "y": 400, "capa": "frente", "etiqueta": [938, 716] },
+    "red-l1": { "x": 990, "y": 215 },
+    "ambiente-01": { "x": 620, "y": 226 },
+    "iluminacion-01": { "x": 330, "y": 152, "repetir": [[600, 152], [870, 152], [1045, 152], [1335, 152]], "etiqueta": [360, 198] },
+    "climatizacion-01": { "x": 1150, "y": 205 },
+    "compresor-01": { "x": 1120, "y": 540, "etiqueta": [1215, 716] },
+    "red-sg": { "x": 1355, "y": 390 },
+    "fv-01": { "x": 160, "y": 72, "etiqueta": [900, 100], "ancla": "start" },
+    "contador-general": { "x": 1460, "y": 470, "etiqueta": [1525, 716] }
+  }
+}

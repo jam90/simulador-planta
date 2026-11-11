@@ -1,5 +1,31 @@
 /* Componentes de las vistas */
 
+/* Portada */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.kpi { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.kpi small { color: var(--suave); font-size: 12px; font-weight: 600; }
+.kpi b { font-size: 26px; font-weight: 750; line-height: 1.15; }
+.kpi b span { font-size: 14px; font-weight: 600; color: var(--suave); }
+.kpi b .mono { font-size: 17px; }
+.kpi em { font-style: normal; font-size: 11.5px; color: var(--tenue); }
+.kpi .ok { color: var(--ok); font-weight: 650; } .kpi .nok { color: var(--nok); font-weight: 650; }
+.kpi .okno, .kpi .energia-lineas { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.avance { display: block; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; margin-top: 2px; }
+.avance b { display: block; height: 100%; background: var(--acento); border-radius: 3px; transition: width .6s; }
+.factores { display: grid; gap: 3px; margin-top: 2px; }
+.factor { display: grid; grid-template-columns: 92px 1fr 44px; gap: 8px; align-items: center; font-size: 12px; color: var(--suave); }
+.factor i { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
+.factor i b { display: block; height: 100%; background: var(--azul); }
+.tarjeta-sinoptico { padding: 10px 12px; }
+.tarjeta-sinoptico > header { padding: 2px 4px; }
+.leyenda { display: flex; gap: 4px 6px; flex-wrap: wrap; }
+.leyenda .estado { font-size: 11px; }
+.contenedor-sinoptico { overflow-x: auto; border-radius: 8px; }
+.contenedor-sinoptico svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.tarjeta-sinoptico .nota { margin: 6px 6px 2px; }
+.portada-bajo { margin-top: 14px; }
+
 /* Datos y salidas */
 .rejilla-conf { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
 .columna { display: grid; gap: 14px; min-width: 0; }

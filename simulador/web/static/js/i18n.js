@@ -1,7 +1,9 @@
 // Textos de la interfaz en varios idiomas (static/i18n/<idioma>.json).
 // Lo que son DATOS del simulador (estados literales, nombres de campos, descripciones
 // de equipos, mensajes de los eventos) no se traduce: es lo que se encuentra en los ficheros.
-export const IDIOMAS = { es: "es-ES", eu: "eu", en: "en-GB" };
+// Formato de números y horas de cada idioma. El euskera usa las mismas reglas que el español
+// (coma decimal, 24 h), y así no depende de que el navegador traiga datos de «eu».
+export const IDIOMAS = { es: "es-ES", eu: "es-ES", en: "en-GB" };
 
 let base = {};      // español: si falta una clave en otro idioma, se usa esta
 let dic = {};

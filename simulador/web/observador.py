@@ -47,6 +47,7 @@ class Observador:
         self.eventos = deque(maxlen=N_EVENTOS)
         self.inspecciones = deque(maxlen=N_INSPECCIONES)
         self.ordenes = deque(maxlen=N_ORDENES)
+        self.estados_eq = {}       # equipo -> deque[(t, estado)] (solo los cambios)
         self.turnos = {}           # linea -> acumulados del turno
         self._piezas_plc = {}      # linea -> piezas contadas por el PLC en el paso anterior
 
@@ -71,6 +72,15 @@ class Observador:
         self.ordenes.extend(registros.get("ordenes", []))
         for linea in self.planta.lineas.values():
             self._linea(t, dt, linea, eventos, registros.get("inspecciones", []))
+        # Cambios de estado de cada equipo. En los de línea, a la hora exacta del cambio de la línea
+        cambios = {}
+        for e in eventos:
+            if e["tipo_evento"] == "cambio_estado" and e["tipo"] == "plc_linea":
+                cambios[e["linea"]] = epoch(e["ts"])
+        for eq in self.planta.equipos.values():
+            cola = self.estados_eq.setdefault(eq.id, deque(maxlen=20))
+            if not cola or cola[-1][1] != eq.estado:
+                cola.append((cambios.get(eq.linea_id, t) if cola else t - dt, eq.estado))
 
     def _linea(self, t, dt, linea, eventos, inspecciones):
         estados = self.estados.setdefault(linea.id, deque(maxlen=N_ESTADOS))

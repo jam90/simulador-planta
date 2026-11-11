@@ -76,12 +76,14 @@ def variante(eq):
     return (eq.cfg.get("parametros") or {}).get("herramienta")
 
 
-def cargar_plano(planta) -> dict:
+def cargar_plano(motor) -> dict:
     """Plano del sinóptico (static/plano.json) cruzado con los equipos reales.
 
     Un equipo sin posición en el plano aparece igualmente: la web lo coloca sola."""
+    planta = motor.planta
     try:
         plano = json.loads((ESTATICOS / "plano.json").read_text(encoding="utf-8"))
+        plano.pop("_ayuda", None)
     except (OSError, ValueError):
         plano = {}
     posiciones = plano.pop("equipos", {}) or {}
@@ -89,15 +91,29 @@ def cargar_plano(planta) -> dict:
                          "descripcion": e.descripcion, "posicion": posiciones.get(e.id)}
                         for e in planta.equipos.values()]
     plano["lineas"] = [{"id": l.id, "descripcion": l.descripcion} for l in planta.lineas.values()]
+    plano["zonas_desc"] = {l["id"]: l.get("descripcion", "") for l in motor.config.get("lineas", [])}
     plano["zona_horaria"] = str(planta.tz)
     return plano
+
+
+def avisos(eq, t) -> dict:
+    """Señales de problemas que la animación muestra (cálculos puros: no consumen aleatorios)."""
+    r = {}
+    if getattr(eq, "deg", None) and t:
+        # Avería anunciada: cuánto ha crecido la variable respecto a su valor nominal
+        r["degradacion"] = {"factor": round(eq.factor_deg(t), 3), "limite": eq.deg["limite"],
+                            "variable": eq.cfg["degradacion"]["variable"]}
+    if eq.tipo == "compresor":
+        r["presion_baja"] = bool(eq.alarma_presion)
+        r["fuga_aire"] = "fuga_aire" in eq.incidencias
+    return r
 
 
 def crear_app(motor) -> FastAPI:
     app = FastAPI(title="Simulador de planta")
     planta = motor.planta
     obs = motor.observador = Observador(planta)
-    plano = cargar_plano(planta)
+    plano = cargar_plano(motor)
 
     @app.middleware("http")
     async def sin_cache(request: Request, call_next):
@@ -242,7 +258,8 @@ def crear_app(motor) -> FastAPI:
             for e in planta.equipos.values():
                 m = motor.ultimo_por_equipo.get(e.id)
                 equipos[e.id] = {"estado": e.estado, "valores": m["valores"] if m else None,
-                                 "ciclos": list(obs.ciclos.get(e.id, ()))[-4:]}
+                                 "ciclos": list(obs.ciclos.get(e.id, ())), "avisos": avisos(e, t),
+                                 "estados": list(obs.estados_eq.get(e.id, ()))[-6:]}
             compresor = planta.equipo_de_tipo("compresor")
             fv = planta.equipo_de_tipo("fotovoltaica")
             return {

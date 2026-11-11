@@ -1,7 +1,6 @@
 /* Sinóptico de la planta y dibujos de los equipos (SVG). Los colores salen de los tokens de base.css. */
-.eq .cuerpo { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
-.eq .rotulo-tipo { font: 10px var(--mono); fill: var(--suave); }
-.eq .baliza-estado { fill: var(--c, var(--e-parada)); }
+
+/* Color de estado de cada equipo: data-estado en su grupo */
 [data-estado="PRODUCCION"], [data-estado="PRODUCIENDO"], [data-estado="CARGA"], [data-estado="ENCENDIDA"], [data-estado="OK"] { --c: var(--e-produccion); }
 [data-estado="ARRANQUE"], [data-estado="VACIO"], [data-estado="VENTILACION"] { --c: var(--e-arranque); }
 [data-estado="ESPERA"], [data-estado="APAGADO"], [data-estado="EMERGENCIA"] { --c: var(--e-espera); }
@@ -11,3 +10,183 @@
 [data-estado="CAMBIO_FORMATO"] { --c: var(--e-cambio); }
 [data-estado="CALOR"] { --c: var(--acento); }
 [data-estado="PARADA"], [data-estado="PARADO"] { --c: var(--e-parada); }
+
+.sv { font-family: var(--fuente); }
+.sv text { user-select: none; }
+
+/* Fondo: nave, zonas, cubierta y suelo */
+.sinoptico .exterior { fill: color-mix(in srgb, var(--azul) 5%, var(--panel)); }
+.sinoptico .terreno { fill: var(--s-suelo); }
+.sinoptico .nave { fill: var(--s-zona); }
+.sinoptico .zona.z1 { fill: color-mix(in srgb, var(--azul) 4%, var(--s-zona)); }
+.sinoptico .zona.z0 { fill: var(--s-zona); }
+.sinoptico .cubierta, .sinoptico .muro { fill: var(--s-metal); }
+.sinoptico .cubierta-dientes { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
+.sinoptico .linea-suelo { stroke: var(--s-linea); stroke-width: 2; }
+.sinoptico .titulo-zona { font-size: 13px; font-weight: 650; fill: var(--suave); }
+
+/* Piezas comunes de los dibujos */
+.sv .m { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
+.sv .m2 { fill: var(--s-metal); }
+.sv .os { fill: var(--s-oscuro); }
+.sv .os-trazo { stroke: var(--s-oscuro); fill: none; }
+.sv .ac-trazo { stroke: var(--acento); fill: none; }
+.sv .acero { fill: var(--s-pieza); }
+.sv .pieza { fill: var(--s-pieza); stroke: var(--s-oscuro); stroke-width: 1.2; }
+.sv .pieza.ok { fill: color-mix(in srgb, var(--ok) 55%, var(--s-pieza)); }
+.sv .pieza.nok { fill: var(--nok); }
+.sv .vidrio { fill: color-mix(in srgb, var(--azul) 10%, var(--s-zona)); stroke: var(--s-metal); stroke-width: 1.5; }
+.sv .pantalla { fill: #1d2733; }
+.sv .txt-pant { font: 9px var(--mono); fill: #9fe3b9; }
+.sv .txt-pant.grande { font-size: 11px; font-weight: 700; }
+.sv .txt-mini { font: 9px var(--mono); fill: var(--suave); }
+.sv .barra-fondo { fill: color-mix(in srgb, var(--s-oscuro) 25%, transparent); }
+.sv .barra-ac { fill: var(--acento); }
+.sv .barra-ac.alerta, .sv .barra-ac.mal { fill: var(--nok); }
+.sv .barra-az { fill: var(--azul); }
+.sv .tubo { stroke: var(--s-metal); stroke-width: 6; fill: none; stroke-linecap: round; }
+.sv .cable { stroke: var(--s-oscuro); stroke-width: 2; fill: none; }
+.sv .oculto { display: none; }
+.sv .piloto { fill: var(--c, var(--e-parada)); stroke: var(--panel); stroke-width: 2; }
+.sv .zona-clic { fill: transparent; stroke: transparent; stroke-width: 2; transition: stroke .15s; }
+.sv .rotulo-tipo { font: 10px var(--mono); fill: var(--suave); }
+
+/* Enlaces del sinóptico */
+.sinoptico .eq-enlace { cursor: pointer; }
+.sinoptico .eq-enlace:hover .zona-clic, .sinoptico .eq-enlace:focus-visible .zona-clic { stroke: var(--azul); stroke-dasharray: 4 3; }
+.sinoptico .eq-enlace:focus { outline: none; }
+.sinoptico .nombre-eq { font-size: 12.5px; font-weight: 700; fill: var(--texto); }
+.sinoptico .clave-eq { font: 11px var(--mono); fill: var(--suave); }
+
+/* Estados: espera atenuado; microparada y avería, con halo que late */
+.eq-sin { transition: opacity .3s; }
+.eq-sin[data-estado="ESPERA"], .eq-sin[data-estado="PARADA"], .eq-sin[data-estado="PARADO"],
+.eq-sin[data-estado="APAGADO"] { opacity: .62; }
+/* Halo solo en el equipo que causa el problema (lo marca el sinóptico); en la ficha, por su estado */
+.eq-sin.con-problema .zona-clic, .eq-ficha[data-estado="AVERIA"] .zona-clic, .eq-ficha[data-estado="FALLO"] .zona-clic,
+.eq-ficha[data-estado="MICROPARADA"] .zona-clic {
+  stroke: var(--e-averia); stroke-width: 3; fill: color-mix(in srgb, var(--e-averia) 10%, transparent);
+  animation: halo 1.2s ease-in-out infinite; }
+.eq-sin.con-problema.aviso .zona-clic, .eq-ficha[data-estado="MICROPARADA"] .zona-clic {
+  stroke: var(--e-microparada); fill: color-mix(in srgb, var(--e-microparada) 10%, transparent); }
+.eq-sin[data-estado="AVERIA"] .piloto, .eq-sin[data-estado="MICROPARADA"] .piloto,
+.eq-sin[data-estado="FALLO"] .piloto { animation: latido 1.2s ease-in-out infinite; }
+@keyframes halo { 50% { stroke-opacity: .25; fill-opacity: .3; } }
+
+/* Robot */
+.sv .seg { stroke: var(--acento); stroke-linecap: round; }
+.sv .seg1 { stroke-width: 15; }
+.sv .seg2 { stroke-width: 11; }
+.sv .junta { fill: var(--s-oscuro); stroke: var(--s-metal-2); stroke-width: 2; }
+.eq-sin[data-estado="AVERIA"] .seg { stroke: var(--e-averia); }
+.eq-sin[data-estado="MICROPARADA"] .seg { stroke: var(--e-microparada); }
+.eq-sin[data-estado="PARADA"] .seg, .eq-sin[data-estado="MANTENIMIENTO"] .seg { stroke: var(--s-metal); }
+.sv .chispas { display: none; }
+.sv .chispas.activas { display: inline; animation: parpadeo .12s steps(2) infinite; }
+.sv .arco { fill: color-mix(in srgb, #ffd36b 35%, transparent); }
+.sv .arco-n { fill: #fff6d0; }
+.sv .chispa { stroke: #ffc83d; stroke-width: 1.6; stroke-linecap: round; fill: none; }
+@keyframes parpadeo { 50% { opacity: .45; } }
+
+/* CNC */
+.sv .herramienta .estrias { stroke: var(--s-metal); stroke-width: 1.2; }
+.sv .herramienta.girando .estrias { animation: estrias .18s linear infinite; }
+@keyframes estrias { to { transform: translateY(-5px); } }
+.sv .refrigerante { display: none; }
+.sv .refrigerante.activas { display: inline; }
+.sv .gota { fill: var(--azul); opacity: .8; animation: gota .7s linear infinite; }
+.sv .gota.g2 { animation-delay: .35s; }
+@keyframes gota { from { transform: translateY(-6px); opacity: 0; } 30% { opacity: .9; } to { transform: translateY(10px); opacity: 0; } }
+
+/* PLC: baliza y LEDs */
+.sv .baliza { opacity: .22; stroke: var(--s-oscuro); stroke-width: 1; }
+.sv .baliza.rojo { fill: #e5484d; } .sv .baliza.ambar { fill: #f5a524; } .sv .baliza.verde { fill: #30a46c; }
+.sv .baliza.encendida { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+.sv .baliza.rojo.encendida, .sv .baliza.ambar.encendida { animation: latido 1s ease-in-out infinite; }
+.sv .led { fill: var(--s-metal); }
+.sv .leds.activos .led { fill: #30a46c; animation: led 1.4s steps(2) infinite; }
+.sv .leds.activos .l1 { animation-delay: .3s; } .sv .leds.activos .l2 { animation-delay: .7s; }
+.sv .leds.activos .l3 { animation-delay: .2s; } .sv .leds.activos .l4 { animation-delay: 1s; }
+@keyframes led { 50% { fill: var(--s-metal); } }
+.sv .seta-base { fill: #f5c400; } .sv .seta { fill: #d9363e; }
+.sv .seta.pulsada { animation: latido .6s ease-in-out infinite; }
+
+/* Calidad */
+.sv .punta { fill: var(--nok); }
+
+/* Cinta */
+.sv .banda { fill: var(--s-cinta); }
+.sv .estrias-cinta path { stroke: color-mix(in srgb, var(--s-pieza) 45%, transparent); stroke-width: 2; }
+.sv .rodillo { fill: var(--s-metal); stroke: var(--s-oscuro); stroke-width: 1.5; }
+.sv .rechazo { fill: color-mix(in srgb, var(--nok) 25%, var(--s-zona)); stroke: var(--nok); stroke-width: 1.5; }
+.sv .caja-ok { fill: color-mix(in srgb, var(--ok) 20%, var(--s-zona)); stroke: var(--ok); stroke-width: 1.5; }
+.sv .cont-txt { font-weight: 700; fill: var(--texto); }
+
+/* Ventiladores y giros */
+.sv .ventilador { transform-box: fill-box; transform-origin: center; }
+.sv .ventilador.gira { animation: giro .5s linear infinite; }
+.sv .ventilador.gira-lento { animation: giro 2.2s linear infinite; }
+@keyframes giro { to { transform: rotate(360deg); } }
+
+/* Compresor */
+.sv .esfera { fill: var(--panel); stroke: var(--s-oscuro); stroke-width: 2; }
+.sv .esfera.alarma { fill: color-mix(in srgb, var(--nok) 30%, var(--panel)); stroke: var(--nok); animation: latido 1s infinite; }
+.sv .escala { stroke: var(--s-metal); stroke-width: 2; fill: none; }
+.sv .aguja { stroke: var(--nok); stroke-width: 2.4; stroke-linecap: round; transition: transform .6s; }
+.sv .fuga { display: none; }
+.sv .fuga.activas { display: inline; }
+.sv .fuga path { stroke: var(--s-aire); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-dasharray: 5 5; animation: fuga .5s linear infinite; }
+@keyframes fuga { to { stroke-dashoffset: -10; } }
+.sinoptico .tuberia { fill: none; stroke: color-mix(in srgb, var(--s-aire) 30%, var(--s-metal-2)); stroke-width: 6; stroke-linejoin: round; }
+.sinoptico .tuberia.fluye { stroke: var(--s-aire); stroke-opacity: .65; stroke-dasharray: 10 8; animation: flujo 1.5s linear infinite; }
+.sinoptico .tuberia.fuga { stroke: var(--e-microparada); }
+@keyframes flujo { to { stroke-dashoffset: -36; } }
+.sinoptico .cable-red { fill: none; stroke: var(--s-oscuro); stroke-width: 3; }
+
+/* Climatización */
+.sv .aire { display: none; }
+.sv .aire.activas { display: inline; }
+.sv .aire path { stroke: var(--suave); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-dasharray: 4 5; animation: flujo 1s linear infinite; }
+.sv .aire.calor path { stroke: var(--acento); }
+.sv .aire.frio path { stroke: var(--azul); }
+
+/* Iluminación */
+.sv .cono { fill: url(#grad-luz); pointer-events: none; transition: opacity .8s; }
+.sv .lampara { fill: #fff3c4; }
+.sv .lampara.apagada { fill: var(--s-metal); }
+
+/* Fotovoltaica */
+.sv .sol circle { fill: #f6c343; }
+.sv .sol path { stroke: #f6c343; stroke-width: 3; stroke-linecap: round; }
+.sv .panel { fill: color-mix(in srgb, #3b82f6 calc(35% + 50% * var(--brillo, 0)), #1e2a3a); stroke: var(--s-metal); stroke-width: 1.5; transition: fill 1s; }
+.sv .paneles { --brillo: 0; }
+.sv .paneles.fallo .panel { fill: #3a3f47; }
+.sv .celdas { stroke: color-mix(in srgb, #ffffff 25%, transparent); stroke-width: 1; fill: none; }
+.sv .m.alarma { fill: var(--nok); animation: latido 1s infinite; }
+
+/* Contador */
+.sv .flecha path { stroke: var(--acento); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.sv .flecha.exporta { transform: rotate(180deg); transform-box: fill-box; transform-origin: center; }
+.sv .flecha.exporta path { stroke: var(--ok); }
+
+/* Bocadillos de problema y cartel de línea */
+.bocadillo rect, .bocadillo path { fill: var(--panel); stroke: var(--e-averia); stroke-width: 2; }
+.bocadillo.aviso rect, .bocadillo.aviso path { stroke: var(--e-microparada); }
+.bocadillo .b1 { font: 700 12px var(--mono); fill: var(--e-averia); }
+.bocadillo.aviso .b1 { fill: var(--e-microparada); }
+.bocadillo .b2 { font-size: 11.5px; fill: var(--texto); }
+.bocadillo { animation: aparece .3s ease-out; }
+@keyframes aparece { from { opacity: 0; transform: translateY(6px); } }
+.cartel rect { fill: color-mix(in srgb, var(--c, var(--e-parada)) 14%, var(--panel)); stroke: var(--c, var(--e-parada)); stroke-width: 2; }
+.cartel.e-MANTENIMIENTO { --c: var(--e-mantenimiento); }
+.cartel.e-CAMBIO_FORMATO { --c: var(--e-cambio); }
+.cartel.e-PARADA { --c: var(--e-parada); }
+.cartel .icono-cartel { fill: var(--c); stroke: var(--c); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.cartel .c1 { font-size: 15px; font-weight: 700; fill: var(--texto); }
+.cartel .c2 { font-size: 12px; fill: var(--suave); }
+
+/* Ficha */
+
+@media (prefers-reduced-motion: reduce) {
+  .sinoptico .tuberia.fluye, .sv .aire path, .sv .fuga path { stroke-dasharray: none; }
+}
