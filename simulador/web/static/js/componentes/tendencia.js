@@ -5,7 +5,9 @@
 // solo cuadro el valor de cada campo en ese instante. Hay también una vista en tabla.
 // Los datos son los que la web ha visto desde que arrancó el simulador (/api/tendencia).
 import { t } from "../i18n.js";
-import { esc, hora, valor } from "../util.js";
+import { esc, hora, num, valor } from "../util.js";
+
+const fijo = (v, d) => (typeof v === "number" ? num(v, d) : valor(v));
 
 const ALTO = 92;                 // alto de cada gráfica (px)
 const M = { izq: 52, der: 12, arr: 8, aba: 18 };
@@ -81,7 +83,8 @@ export class Tendencia {
       const validos = ys.filter((v) => v !== null && v !== undefined);
       const ultimo = validos.length ? (series[campo].filter((v) => v !== null).at(-1)) : null;
       const cab = `<div class="tend-cab"><span class="mono">${esc(campo)}</span>
-        <b>${esc(valor(ultimo))}</b> <span class="tenue">${esc(unidad(campo))}</span></div>`;
+        <b>${esc(valor(ultimo))}</b> <span class="tenue">${esc(unidad(campo))}</span>
+        <span class="tenue tend-hora">${esc(t("ficha.a_las", { h: hora(ts[ts.length - 1]) }))}</span></div>`;
       if (!validos.length) return `<div class="tend">${cab}<p class="nota">–</p></div>`;
       const { lista, a, b } = marcas(Math.min(...validos), Math.max(...validos));
       const y = (v) => M.arr + (ALTO - M.arr - M.aba) * (1 - (v - a) / (b - a || 1));
@@ -119,9 +122,12 @@ export class Tendencia {
       const { a, b } = marcas(Math.min(...ys), Math.max(...ys));
       return (v) => M.arr + (ALTO - M.arr - M.aba) * (1 - (v - a) / (b - a || 1));
     });
+    // El refresco rehace las gráficas: si el puntero seguía encima, se recoloca el cursor con los datos nuevos
+    if (!this.tooltip.hidden && this.puntero) this._cursor(this.puntero);
   }
 
   _cursor(ev) {
+    this.puntero = { clientX: ev.clientX, clientY: ev.clientY };
     const { t: ts, series } = this.datos;
     if (!ts.length || !this.geo) return;
     const svg = this.graficas.querySelector(".tend-svg");
@@ -158,12 +164,22 @@ export class Tendencia {
     }
     this.tooltip.hidden = false;
     const zona = this.raiz.getBoundingClientRect();
-    const izq = Math.min(zona.width - this.tooltip.offsetWidth - 4, Math.max(4, caja.left - zona.left + xj + 12));
-    this.tooltip.style.left = `${izq}px`;
-    this.tooltip.style.top = `${Math.max(0, ev.clientY - zona.top - 20)}px`;
+    const anchoT = this.tooltip.offsetWidth;
+    const xCursor = caja.left - zona.left + xj;
+    if (zona.width < 520) {
+      // Pantalla estrecha: el cuadro va arriba, para no tapar las líneas
+      this.tooltip.style.left = `${Math.max(0, Math.min(zona.width - anchoT, xCursor - anchoT / 2))}px`;
+      this.tooltip.style.top = `${-this.tooltip.offsetHeight - 6}px`;
+    } else {
+      const derecha = xCursor + 14;
+      const izq = derecha + anchoT <= zona.width ? derecha : Math.max(0, xCursor - anchoT - 14);
+      this.tooltip.style.left = `${izq}px`;
+      this.tooltip.style.top = `${Math.max(0, ev.clientY - zona.top - 20)}px`;
+    }
   }
 
   _quitarCursor() {
+    this.puntero = null;
     this.tooltip.hidden = true;
     this.graficas.querySelectorAll(".cursor, .punto").forEach((el) => el.setAttribute("visibility", "hidden"));
   }
@@ -171,9 +187,15 @@ export class Tendencia {
   _pintarTabla() {
     const { t: ts, series } = this.datos;
     const filas = ts.map((tt, j) => ({ tt, j })).slice(-30).reverse();
+    // Mismos decimales en toda la columna, para que las cifras queden alineadas
+    const decimales = Object.fromEntries(this.campos.map((c) => [c, Math.min(3, Math.max(0, ...filas.map(({ j }) => {
+      const v = series[c]?.[j];
+      return typeof v === "number" && !Number.isInteger(v) ? (String(v).split(".")[1] || "").length : 0;
+    })))]));
     this.tablaEl.innerHTML = `<table class="valores"><thead><tr><th>${esc(t("ficha.hora"))}</th>
       ${this.campos.map((c) => `<th class="num mono">${esc(c)}${unidad(c) ? ` (${esc(unidad(c))})` : ""}</th>`).join("")}</tr></thead>
       <tbody>${filas.map(({ tt, j }) => `<tr><td class="mono">${esc(hora(tt))}</td>
-        ${this.campos.map((c) => `<td class="num mono">${esc(valor(series[c]?.[j]))}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+        ${this.campos.map((c) => `<td class="num mono">${esc(fijo(series[c]?.[j], decimales[c]))}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <p class="nota">${esc(t("ficha.tabla_ayuda"))}</p>`;
   }
 }

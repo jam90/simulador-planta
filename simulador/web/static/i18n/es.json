@@ -117,7 +117,7 @@
   "ficha.enviar": "Enviar sus datos",
   "ficha.dibujo_ayuda": "Animación ilustrativa: se mueve según el estado y los ciclos reales del equipo, unos segundos por detrás de la simulación (para dibujar solo lo que ya ha pasado). El estado de arriba y la telemetría van al momento.",
   "ficha.tendencia": "Evolución en vivo",
-  "ficha.tendencia_ayuda": "Hasta los últimos 30 minutos simulados, desde que arrancó el simulador; elige hasta 3 campos. Pasa el ratón por encima para ver los valores. El histórico completo está en los ficheros.",
+  "ficha.tendencia_ayuda": "Hasta los últimos 30 minutos simulados, desde que arrancó el simulador; elige hasta 3 campos. Pasa el ratón (o el dedo) por encima para ver los valores, o mírala como tabla. El histórico completo está en los ficheros.",
   "ficha.recientes": "Qué está pasando",
   "ficha.incidencias": "Provocar incidencias",
   "ficha.valores": "Telemetría",
@@ -255,7 +255,7 @@
   "ener.titulo": "Energía",
   "ener.subtitulo": "De dónde viene la energía de la planta, adónde va y cuánto cuesta (con una tarifa ficticia).",
   "ener.flujo": "Flujo de energía, ahora",
-  "ener.flujo_ayuda": "El grosor y la velocidad de cada flujo dependen de la potencia. La fotovoltaica alimenta la planta por detrás del contador: lo que el contador compra o vende es la diferencia. Pulsa un equipo para ver su ficha.",
+  "ener.flujo_ayuda": "El grosor y la velocidad de cada flujo dependen de la potencia. La fotovoltaica no pasa por el contador: entra en la planta por detrás de él, así que lo que el contador compra o vende es la diferencia entre lo que consumen los cuadros y lo que genera. Pulsa un equipo para ver su ficha.",
   "ener.red": "Red eléctrica",
   "ener.tarifa": "Tarifa de hoy",
   "ener.tarifa_dia": "Periodo y precio de cada hora del {fecha} (la hora actual, recuadrada).",
@@ -271,5 +271,11 @@
   "ener.curva": "Curva de carga cuartohoraria (CSV)",
   "ener.curva_ayuda": "Un fichero por día, como el que facilita la distribuidora (con ; y coma decimal):",
   "ener.contador_datos": "Telemetría y eventos del contador ({id})",
-  "ener.media_pendiente": "El contador la calcula al cerrar cada cuarto de hora completo; todavía no ha cerrado ninguno desde que arrancó el simulador."
+  "ener.media_pendiente": "El contador la calcula al cerrar cada cuarto de hora completo; todavía no ha cerrado ninguno desde que arrancó el simulador.",
+  "ener.barra": "Barra de la planta",
+  "ener.barra_ayuda": "Punto de unión dentro de la planta: le llega lo que pasa por el contador y lo que genera la fotovoltaica, y de él salen los cuadros. Su valor es lo que consumen los cuadros.",
+  "ener.fecha_fichero": "AAAA-MM-DD",
+  "ficha.a_las": "a las {h}",
+  "ficha.tabla_ayuda": "Las últimas 30 muestras; la más reciente, arriba.",
+  "prod.causa": "Causa"
 }

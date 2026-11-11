@@ -117,7 +117,7 @@
   "ficha.enviar": "Send its data",
   "ficha.dibujo_ayuda": "Illustrative animation: it moves according to the real state and cycles of the equipment, a few seconds behind the simulation (so that it only draws what has already happened). The state at the top and the telemetry are up to the moment.",
   "ficha.tendencia": "Live trend",
-  "ficha.tendencia_ayuda": "Up to the last 30 simulated minutes, since the simulator started; choose up to 3 fields. Hover to see the values. The full history is in the files.",
+  "ficha.tendencia_ayuda": "Up to the last 30 simulated minutes, since the simulator started; choose up to 3 fields. Hover (or drag a finger) over it to see the values, or view it as a table. The full history is in the files.",
   "ficha.recientes": "What is happening",
   "ficha.incidencias": "Cause incidents",
   "ficha.valores": "Telemetry",
@@ -255,7 +255,7 @@
   "ener.titulo": "Energy",
   "ener.subtitulo": "Where the plant's energy comes from, where it goes and how much it costs (with a fictitious tariff).",
   "ener.flujo": "Energy flow, now",
-  "ener.flujo_ayuda": "The thickness and speed of each flow depend on the power. The photovoltaic system feeds the plant behind the meter: what the meter buys or sells is the difference. Click a piece of equipment to see its page.",
+  "ener.flujo_ayuda": "The thickness and speed of each flow depend on the power. The photovoltaic system does not go through the meter: it enters the plant behind it, so what the meter buys or sells is the difference between what the boards consume and what it generates. Click a piece of equipment to see its page.",
   "ener.red": "Power grid",
   "ener.tarifa": "Today's tariff",
   "ener.tarifa_dia": "Period and price for each hour of {fecha} (the current hour is outlined).",
@@ -271,5 +271,11 @@
   "ener.curva": "Quarter-hourly load curve (CSV)",
   "ener.curva_ayuda": "One file per day, like the one the distribution company provides (with ; and decimal comma):",
   "ener.contador_datos": "Meter telemetry and events ({id})",
-  "ener.media_pendiente": "The meter calculates it when each full quarter-hour closes; none has closed since the simulator started."
+  "ener.media_pendiente": "The meter calculates it when each full quarter-hour closes; none has closed since the simulator started.",
+  "ener.barra": "Plant busbar",
+  "ener.barra_ayuda": "Junction point inside the plant: it receives what passes through the meter and what the photovoltaic system generates, and the boards come out of it. Its value is what the boards consume.",
+  "ener.fecha_fichero": "YYYY-MM-DD",
+  "ficha.a_las": "at {h}",
+  "ficha.tabla_ayuda": "The last 30 samples; the most recent at the top.",
+  "prod.causa": "Cause"
 }

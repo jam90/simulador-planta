@@ -17,9 +17,9 @@ export function tramos(serie, t0, t1) {
 }
 
 /** W: ancho real en px (se dibuja a ese ancho para que el texto no se deforme). */
-export function htmlCronologia(serie, t0, t1, W = 1000) {
+export function htmlCronologia(serie, t0, t1, W = 1000, ahora = t1) {
   if (!serie?.length || t1 <= t0) return `<p class="nota">–</p>`;
-  const ts = tramos(serie, t0, t1);
+  const ts = tramos(serie, t0, Math.min(t1, ahora));
   const H = 38;
   const x = (tt) => (W * (tt - t0)) / (t1 - t0);
   const totales = {};
@@ -33,6 +33,7 @@ export function htmlCronologia(serie, t0, t1, W = 1000) {
         <title>${esc(`${nombre} (${e}) · ${hora(a, false)}–${hora(b, false)} · ${duracionCorta(b - a)}${m ? " · " + m : ""}`)}</title></rect>
         ${w > nombre.length * 7.5 ? `<text class="tramo-txt" x="${(xa + 8).toFixed(1)}" y="${H / 2 + 4}">${esc(nombre)}</text>` : ""}</g>`;
     }).join("")}
+    <line class="ahora" x1="${x(Math.min(t1, ahora)).toFixed(1)}" x2="${x(Math.min(t1, ahora)).toFixed(1)}" y1="0" y2="${H}"/>
     ${[0, 0.25, 0.5, 0.75, 1].map((k) => `<text class="eje" x="${(k * W).toFixed(1)}" y="${H + 14}"
       text-anchor="${k === 0 ? "start" : k === 1 ? "end" : "middle"}">${esc(hora(t0 + k * (t1 - t0), false))}</text>`).join("")}
   </svg>

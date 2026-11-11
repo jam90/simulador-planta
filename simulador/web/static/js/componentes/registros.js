@@ -23,10 +23,10 @@ export function htmlCota(m) {
     <span class="mono num">${esc(valor(m.valor))} ${esc(m.unidad)}</span></div>`;
 }
 
-export function htmlOrdenes(lista, { materiales = false } = {}) {
+export function htmlOrdenes(lista, { materiales = false, titulo = true, abiertas = new Set() } = {}) {
   if (!lista.length) return `<p class="nota">${esc(t("ficha.sin_ordenes"))}</p>`;
   if (materiales) {
-    return `<h3>${esc(t("ficha.ordenes"))}</h3>${lista.map((o) => `<details class="orden">
+    return `${titulo ? `<h3>${esc(t("ficha.ordenes"))}</h3>` : ""}${lista.map((o) => `<details class="orden" data-orden="${esc(o.orden_id)}"${abiertas.has(o.orden_id) ? " open" : ""}>
       <summary><b class="mono">${esc(o.orden_id)}</b> ${esc(o.referencia)} · ${num(o.piezas_ok, 0)} OK / ${num(o.piezas_nok, 0)} NOK
         <span class="mono tenue">${esc(o.motivo_cierre)}</span> <small>${esc(horaIso(o.inicio, false))}–${esc(horaIso(o.fin, false))}</small></summary>
       <table class="valores"><thead><tr><th>material</th><th class="num">cantidad_prevista</th><th class="num">cantidad_real</th>

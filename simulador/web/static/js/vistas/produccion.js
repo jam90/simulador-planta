@@ -1,13 +1,14 @@
 // Producción y calidad: estado de cada línea, orden en curso, cronología de estados, OEE del turno
 // explicado con sus cifras, calidad por cota, últimas inspecciones y órdenes cerradas.
 import { api } from "../api.js";
-import { t } from "../i18n.js";
+import { idioma, t } from "../i18n.js";
 import { $, duracionCorta, esc, hora, insignia, nombreTurno, num, pct, poner } from "../util.js";
 import { htmlCronologia } from "../componentes/cronologia.js";
 import { htmlInspecciones, htmlOrdenes } from "../componentes/registros.js";
 
 let raiz = null, temporizador = null, recientes = {};
 const VENTANA_S = 3600;
+const PASO_CRONO_S = 60;       // la cronología se rehace como mucho una vez por minuto simulado
 
 function montar(el, ctx) {
   raiz = el;
@@ -69,6 +70,7 @@ function actualizar(ctx) {
     poner(parte(b, "estado"), `
       <p class="estado-grande">${insignia(l.estado, { literal: true })}</p>
       ${l.motivo ? `<p>${esc(l.motivo)}${l.codigo ? ` <span class="mono">${esc(l.codigo)}</span>` : ""}</p>` : ""}
+      ${l.causa ? fila(t("prod.causa"), `<a href="#/equipo/${esc(l.causa)}">${esc(l.causa)}</a>`) : ""}
       ${resta !== null ? `<p class="nota">${esc(t("prod.fin_estado", { s: duracionCorta(resta) }))}</p>` : ""}
       ${fila(t("prod.referencia"), esc(l.referencia))}
       ${fila(t("cab.turno"), esc(nombreTurno(v.turno)))}
@@ -94,9 +96,10 @@ function actualizar(ctx) {
 
     const crono = parte(b, "crono");
     const ancho = Math.max(300, crono.clientWidth || 900);
-    const t1 = v.t, t0 = t1 - VENTANA_S;
-    const html = htmlCronologia(l.estados, t0, t1, ancho);
-    if (crono.dataset.clave !== `${Math.round(t1 / 5)}|${ancho}`) { crono.innerHTML = html; crono.dataset.clave = `${Math.round(t1 / 5)}|${ancho}`; }
+    const t1 = Math.ceil(v.t / PASO_CRONO_S) * PASO_CRONO_S, t0 = t1 - VENTANA_S;
+    const ultimo = l.estados[l.estados.length - 1];
+    const claveC = `${l.estados.length}|${ultimo?.[0]}|${t1}|${ancho}|${idioma()}`;
+    if (crono.dataset.clave !== claveC) { crono.innerHTML = htmlCronologia(l.estados, t0, t1, ancho, v.t); crono.dataset.clave = claveC; }
 
     poner(parte(b, "oee-detalle"), k ? detalleOee(k, l) : `<p class="nota">${esc(t("prod.sin_turno"))}</p>`);
   }
@@ -144,16 +147,24 @@ function pintarRegistros() {
       if (m.resultado === "NOK") porCota[m.cota].nok++;
     }
     const nok = ins.filter((i) => i.resultado === "NOK").length;
-    const maxNok = Math.max(1, ...Object.values(porCota).map((c) => c.nok));
+    // Barra llena = el 10 % de las piezas fuera de tolerancia en esa cota (así 1 NOK no parece un desastre)
+    const LLENA = 0.1;
     poner(parte(b, "calidad"), ins.length ? `
       <p>${esc(t("prod.ultimas_n", { n: ins.length, nok, pct: num(100 * nok / ins.length, 1) }))}</p>
       <h3>${esc(t("prod.nok_por_cota"))}</h3>
       <div class="barras-cota">${Object.entries(porCota).map(([c, x]) => `<div class="barra-cota">
-        <span class="mono">${esc(c)}</span><i><b style="width:${(100 * x.nok / maxNok).toFixed(1)}%"></b></i>
-        <span class="num">${num(x.nok, 0)}</span></div>`).join("")}</div>
+        <span class="mono">${esc(c)}</span><i><b style="width:${(100 * Math.min(1, x.nok / x.total / LLENA)).toFixed(1)}%"></b></i>
+        <span class="num">${num(x.nok, 0)} (${num(100 * x.nok / x.total, 1)} %)</span></div>`).join("")}</div>
       <p class="nota">${esc(t("prod.nok_ayuda"))}</p>
       ${htmlInspecciones(ins.slice(0, 3))}` : `<p class="nota">${esc(t("ficha.sin_inspecciones"))}</p>`);
-    poner(parte(b, "ordenes"), htmlOrdenes((r.ordenes || []).slice(0, 8), { materiales: true }));
+    const ordenes = (r.ordenes || []).slice(0, 8);
+    const cont = parte(b, "ordenes");
+    const clave = ordenes.map((o) => o.orden_id).join(",") + idioma();
+    if (cont.dataset.clave !== clave) {
+      const abiertas = new Set([...cont.querySelectorAll("details[open]")].map((d) => d.dataset.orden));
+      cont.innerHTML = htmlOrdenes(ordenes, { materiales: true, titulo: false, abiertas });
+      cont.dataset.clave = clave;
+    }
   }
 }
 

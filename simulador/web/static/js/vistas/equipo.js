@@ -36,7 +36,7 @@ function montar(el, ctx, params) {
         <p>${esc(meta.descripcion)}</p>
         <p class="nota"><span data-i18n="ficha.tipo"></span> <span class="mono">${esc(meta.tipo)}</span>
           · <span data-i18n="ficha.linea"></span> <span class="mono">${esc(meta.linea)}</span>
-          · ${esc(t(`tipo.${meta.tipo}`))}</p>
+          ${t(`tipo.${meta.tipo}`) !== meta.descripcion ? `· ${esc(t(`tipo.${meta.tipo}`))}` : ""}</p>
       </div>
       <label class="interruptor enviar"><input type="checkbox" id="ficha-publicar"><span data-i18n="ficha.enviar"></span></label>
     </div>
@@ -84,7 +84,7 @@ function montar(el, ctx, params) {
   temporizador = setInterval(pedirRecientes, 3000);
   tendencia = new Tendencia($("#ficha-tendencia", el));
   camposTend = null;
-  temporizadorTend = setInterval(pedirTendencia, 5000);
+  temporizadorTend = setInterval(pedirTendencia, 2000);
   el.addEventListener("click", alPulsarTendencia);
   estadoPintado = null;
   marco = requestAnimationFrame(bucle);

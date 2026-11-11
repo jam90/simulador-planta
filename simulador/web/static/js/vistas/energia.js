@@ -37,7 +37,8 @@ function montar(el, ctx) {
   claveAcceso = "";
   pedirTarifa();
   pedirTendencia();
-  temporizador = setInterval(() => { pedirTendencia(); pedirTarifa(); }, 5000);
+  let n = 0;
+  temporizador = setInterval(() => { pedirTendencia(); if (++n % 15 === 0) pedirTarifa(); }, 2000);
 }
 
 function desmontar() {
@@ -51,6 +52,7 @@ function desmontar() {
 const W = 1000;
 const FILA = 62;
 const MEDIO = 92;            // medio ancho de cada caja del diagrama
+const BARRA_ALTO = 90;
 
 /** Coloca red, contador, generadores, cuadros y consumidores según la jerarquía (mide / generacion). */
 function disposicion() {
@@ -66,18 +68,21 @@ function disposicion() {
   for (const g of grupos) {
     const n = Math.max(1, g.hijos.length);
     const yCentro = 70 + (fila + n / 2) * FILA;
-    nodos[g.cuadro.id] = { e: g.cuadro, x: 585, y: yCentro };
+    nodos[g.cuadro.id] = { e: g.cuadro, x: 640, y: yCentro };
     g.hijos.forEach((h, i) => { nodos[h.id] = { e: h, x: 890, y: 70 + (fila + i + 0.5) * FILA }; });
     fila += n;
   }
   const yC = (Math.min(...cuadros.map((c) => nodos[c.id].y)) + Math.max(...cuadros.map((c) => nodos[c.id].y))) / 2;
-  nodos[contador.id] = { e: contador, x: 330, y: yC };
+  // La fotovoltaica no pasa por el contador: entra en la barra de la planta, por detrás de él.
+  // El contador mide la diferencia entre lo que consumen los cuadros y lo que genera la FV.
+  nodos[contador.id] = { e: contador, x: 300, y: yC };
   nodos.__red = { e: { id: "__red", tipo: "red" }, x: 95, y: yC };
-  contador.generacion.forEach((id, i) => { if (eqs[id]) nodos[id] = { e: eqs[id], x: 330, y: 40 + i * FILA }; });
-  const enlaces = [["__red", contador.id, "red"]];
-  for (const id of contador.generacion) if (eqs[id]) enlaces.push([id, contador.id, "gen"]);
+  nodos.__barra = { e: { id: "__barra", tipo: "barra" }, x: 452, y: yC };
+  contador.generacion.forEach((id, i) => { if (eqs[id]) nodos[id] = { e: eqs[id], x: 452, y: 40 + i * FILA }; });
+  const enlaces = [["__red", contador.id, "red"], [contador.id, "__barra", "red"]];
+  for (const id of contador.generacion) if (eqs[id]) enlaces.push([id, "__barra", "gen"]);
   for (const g of grupos) {
-    enlaces.push([contador.id, g.cuadro.id, "cuadro"]);
+    enlaces.push(["__barra", g.cuadro.id, "cuadro"]);
     for (const h of g.hijos) enlaces.push([g.cuadro.id, h.id, "consumo"]);
   }
   return { nodos, enlaces, H, contador: contador.id };
@@ -87,13 +92,20 @@ function dibujarFlujo() {
   const d = disposicion();
   const cont = $("#ener-flujo", raiz);
   if (!d) { cont.innerHTML = `<p class="nota">–</p>`; nodosFlujo = null; return; }
+  const medio = (id) => (id === "__barra" ? 8 : MEDIO);
   const camino = ([a, b]) => {
     const p = d.nodos[a], q = d.nodos[b];
-    const x1 = p.x + MEDIO, x2 = q.x - MEDIO;
-    if (a !== "__red" && d.nodos[b] && p.x === q.x) return `M${p.x} ${p.y + 22} L${q.x} ${q.y - 26}`;   // generador encima
+    const x1 = p.x + medio(a), x2 = q.x - medio(b);
+    if (p.x === q.x) return `M${p.x} ${p.y + 24} L${q.x} ${q.y - BARRA_ALTO / 2}`;   // generador, encima de la barra
     return `M${x1} ${p.y} C ${(x1 + x2) / 2} ${p.y}, ${(x1 + x2) / 2} ${q.y}, ${x2} ${q.y}`;
   };
   const nodo = ({ e, x, y }) => {
+    if (e.tipo === "barra") {
+      return `<g class="barra-planta"><rect x="${x - 8}" y="${y - BARRA_ALTO / 2}" width="16" height="${BARRA_ALTO}" rx="4"/>
+        <text class="nodo-nombre" x="${x}" y="${y + BARRA_ALTO / 2 + 16}" text-anchor="middle">${esc(t("ener.barra"))}</text>
+        <text class="nodo-valor" data-valor="__barra" x="${x}" y="${y + BARRA_ALTO / 2 + 31}" text-anchor="middle">–</text>
+        <title>${esc(t("ener.barra_ayuda"))}</title></g>`;
+    }
     const img = e.tipo === "red" ? "" : `<image href="/static/img/equipos/${esc(modulo(e.tipo).imagen(e))}.webp" x="${x - MEDIO + 6}" y="${y - 20}" width="40" height="40"/>`;
     const nombre = e.tipo === "red" ? t("ener.red") : e.id;
     const xt = e.tipo === "red" ? x - MEDIO + 14 : x - MEDIO + 52;
@@ -101,7 +113,7 @@ function dibujarFlujo() {
       <text class="nodo-nombre" x="${xt}" y="${y - 4}">${esc(nombre)}</text>
       <text class="nodo-valor" data-valor="${esc(e.id)}" x="${xt}" y="${y + 13}">–</text>`;
     return e.tipo === "red" ? `<g class="nodo-flujo red">${cuerpo}</g>`
-      : `<a href="#/equipo/${esc(e.id)}" class="nodo-flujo"><title>${esc(`${e.id} · ${e.descripcion}`)}</title>${cuerpo}</a>`;
+      : `<a href="#/equipo/${esc(e.id)}" class="nodo-flujo" data-nodo="${esc(e.id)}"><title>${esc(`${e.id} · ${e.descripcion}`)}</title>${cuerpo}</a>`;
   };
   cont.innerHTML = `<svg class="flujo" viewBox="0 0 ${W} ${d.H}" role="img" aria-label="${esc(t("ener.flujo"))}">
     ${d.enlaces.map((en) => `<path class="enlace-fondo" d="${camino(en)}"/>
@@ -121,24 +133,32 @@ function actualizarFlujo(ctx) {
   if (!d) return;
   const max = 60;
   const neto = potencia(ctx, d.contador) ?? 0;
+  const consumo = plano.equipos.find((e) => e.id === d.contador).mide.reduce((a, id) => a + (potencia(ctx, id) ?? 0), 0);
+  for (const g of raiz.querySelectorAll("[data-nodo]")) {
+    const est = ctx.vista.equipos[g.dataset.nodo]?.estado;
+    if (g.dataset.estado !== est) g.dataset.estado = est || "";
+  }
   for (const el of raiz.querySelectorAll("[data-valor]")) {
     const id = el.dataset.valor;
-    const kw = id === "__red" ? neto : potencia(ctx, id);
-    const s = kw === null ? "–" : id === "__red" ? `${t(neto < 0 ? "dest.vende" : "dest.compra")} ${num(Math.abs(kw), 1)} kW` : `${num(kw, 1)} kW`;
+    const kw = id === "__red" ? neto : id === "__barra" ? consumo : potencia(ctx, id);
+    const estado = ctx.vista.equipos[id]?.estado;
+    const s = kw === null ? "–" : id === "__red" ? `${t(neto < 0 ? "dest.vende" : "dest.compra")} ${num(Math.abs(kw), 1)} kW`
+      : estado === "FALLO" ? `${num(kw, 1)} kW · FALLO` : `${num(kw, 1)} kW`;
     if (el.textContent !== s) el.textContent = s;
   }
   for (const el of raiz.querySelectorAll("[data-enlace]")) {
     const [a, b] = el.dataset.enlace.split(">");
     let kw;
-    if (a === "__red") kw = neto;
-    else if (el.classList.contains("gen")) kw = potencia(ctx, a);
+    const gen = el.classList.contains("gen");
+    if (gen) kw = potencia(ctx, a);                                   // fotovoltaica -> barra
+    else if (a === "__red" || b === "__barra") kw = neto;            // red -> contador -> barra
     else kw = potencia(ctx, b);
     kw = kw ?? 0;
     const k = Math.min(1, Math.abs(kw) / max);
     el.style.strokeWidth = `${(2 + 12 * k).toFixed(1)}px`;
     el.style.animationDuration = `${Math.max(0.5, 4 - 3.5 * k).toFixed(2)}s`;
     el.classList.toggle("parado", Math.abs(kw) < 0.05 || ctx.vista.pausado);
-    el.classList.toggle("inverso", a === "__red" && kw < 0);       // vende: la energía sale hacia la red
+    el.classList.toggle("inverso", !gen && (a === "__red" || b === "__barra") && kw < 0);   // vende: sale hacia la red
   }
 }
 
@@ -235,7 +255,7 @@ async function pintarDatos(ctx) {
   if (!raiz) return;
   poner($("#ener-datos", raiz), `
     ${curva ? `<h3>${esc(t("ener.curva"))}</h3><p>${esc(t("ener.curva_ayuda"))}</p>
-      <p><code>${esc(curva.parametros.ruta || "")}/curva-cuartohoraria-AAAA-MM-DD.csv</code>
+      <p><code>${esc(curva.parametros.ruta || "")}/curva-cuartohoraria-${esc(t("ener.fecha_fichero"))}.csv</code>
       ${curva.activa ? "" : ` <small class="aviso-salida">(${esc(t("acceso.desactivada"))})</small>`}</p>` : ""}
     <h3>${esc(t("ener.contador_datos", { id: cg?.id || "" }))}</h3>${acceso}`);
 }

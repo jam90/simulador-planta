@@ -117,7 +117,7 @@
   "ficha.enviar": "Bidali haren datuak",
   "ficha.dibujo_ayuda": "Animazio ilustratiboa: ekipoaren benetako egoeraren eta zikloen arabera mugitzen da, simulazioa baino segundo batzuk atzerago (jada gertatu dena bakarrik marrazteko). Goiko egoera eta telemetria unean bertan doaz.",
   "ficha.tendencia": "Bilakaera zuzenean",
-  "ficha.tendencia_ayuda": "Simulatutako azken 30 minutuak gehienez, simulagailua abiarazi zenetik; aukeratu 3 eremu gehienez. Pasatu sagua gainetik balioak ikusteko. Historiko osoa fitxategietan dago.",
+  "ficha.tendencia_ayuda": "Simulatutako azken 30 minutuak gehienez, simulagailua abiarazi zenetik; aukeratu 3 eremu gehienez. Pasatu sagua (edo hatza) gainetik balioak ikusteko, edo ikusi taula gisa. Historiko osoa fitxategietan dago.",
   "ficha.recientes": "Zer gertatzen ari den",
   "ficha.incidencias": "Gorabeherak eragin",
   "ficha.valores": "Telemetria",
@@ -255,7 +255,7 @@
   "ener.titulo": "Energia",
   "ener.subtitulo": "Lantegiaren energia nondik datorren, nora doan eta zenbat kostatzen den (tarifa fiktizio batekin).",
   "ener.flujo": "Energia-fluxua, orain",
-  "ener.flujo_ayuda": "Fluxu bakoitzaren lodiera eta abiadura potentziaren araberakoak dira. Fotovoltaikak kontagailuaren atzetik elikatzen du lantegia: kontagailuak erosten edo saltzen duena aldea da. Sakatu ekipo bat haren fitxa ikusteko.",
+  "ener.flujo_ayuda": "Fluxu bakoitzaren lodiera eta abiadura potentziaren araberakoak dira. Fotovoltaika ez da kontagailutik pasatzen: haren atzetik sartzen da lantegian; beraz, kontagailuak erosten edo saltzen duena koadroek kontsumitzen dutenaren eta sortzen denaren arteko aldea da. Sakatu ekipo bat haren fitxa ikusteko.",
   "ener.red": "Sare elektrikoa",
   "ener.tarifa": "Gaurko tarifa",
   "ener.tarifa_dia": "{fecha} eguneko ordu bakoitzeko aldia eta prezioa (uneko ordua, laukian).",
@@ -271,5 +271,11 @@
   "ener.curva": "Ordu-laurdeneko karga-kurba (CSV)",
   "ener.curva_ayuda": "Fitxategi bat egun bakoitzeko, banatzaileak ematen duena bezala (; eta koma hamartarrarekin):",
   "ener.contador_datos": "Kontagailuaren telemetria eta gertaerak ({id})",
-  "ener.media_pendiente": "Kontagailuak ordu-laurden oso bakoitza ixtean kalkulatzen du; simulagailua abiarazi zenetik ez du bat ere itxi."
+  "ener.media_pendiente": "Kontagailuak ordu-laurden oso bakoitza ixtean kalkulatzen du; simulagailua abiarazi zenetik ez du bat ere itxi.",
+  "ener.barra": "Lantegiko barra",
+  "ener.barra_ayuda": "Lantegiaren barneko lotune-puntua: kontagailutik pasatzen dena eta fotovoltaikak sortzen duena iristen zaizkio, eta bertatik ateratzen dira koadroak. Bere balioa koadroek kontsumitzen dutena da.",
+  "ener.fecha_fichero": "UUUU-HH-EE",
+  "ficha.a_las": "{h}etan",
+  "ficha.tabla_ayuda": "Azken 30 laginak; berriena, goian.",
+  "prod.causa": "Kausa"
 }
