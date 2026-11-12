@@ -33,22 +33,27 @@ def acceso(motor, eq) -> dict:
     salidas = {s.nombre: s for s in motor.salidas}
     mqtt, jsonl = salidas.get("mqtt"), salidas.get("jsonl")
     resultado = {"equipo": eq.id, "mqtt": None, "ficheros": None}
+    externo = os.environ.get("MQTT_PUERTO_EXTERNO")         # lo pone docker-compose
     if mqtt:
-        externo = os.environ.get("MQTT_PUERTO_EXTERNO")     # lo pone docker-compose
+        # «clave» dice desde dónde vale cada servidor (la web lo traduce); «local» es el que usa
+        # un cliente instalado en el equipo de quien mira la web.
         if externo:
-            servidores = [{"desde": "Node-RED instalado en tu equipo", "servidor": "localhost", "puerto": int(externo)},
-                          {"desde": "Node-RED en un contenedor de este docker-compose",
-                           "servidor": mqtt.host, "puerto": mqtt.puerto}]
+            servidores = [{"clave": "equipo", "servidor": "localhost", "puerto": int(externo)},
+                          {"clave": "contenedor", "servidor": mqtt.host, "puerto": mqtt.puerto}]
         else:
-            servidores = [{"desde": "Node-RED", "servidor": mqtt.host, "puerto": mqtt.puerto}]
+            servidores = [{"clave": "", "servidor": mqtt.host, "puerto": mqtt.puerto}]
         resultado["mqtt"] = {
-            "activa": motor.salida_activa["mqtt"], "servidores": servidores,
+            "activa": motor.salida_activa["mqtt"], "servidores": servidores, "docker": bool(externo),
+            "local": {"servidor": servidores[0]["servidor"], "puerto": servidores[0]["puerto"]},
             "topics": [{"clave": c, "canal": NOMBRE_CANAL[c], "topic": mqtt.topic(c, eq.linea_id, eq.id)} for c in eq.canales],
             "todos": f"{mqtt.prefijo}/{eq.linea_id}/{eq.id}/#",
         }
     if jsonl:
         resultado["ficheros"] = {
             "activa": motor.salida_activa["jsonl"],
+            # Carpeta desde la que se resuelven las rutas relativas; en Docker es la del contenedor
+            # y no sirve fuera, así que no se da.
+            "base": None if externo else os.getcwd(),
             "carpetas": [{"clave": c, "canal": NOMBRE_CANAL[c], "carpeta": jsonl.carpeta(c, eq.linea_id, eq.id)}
                          for c in eq.canales],
         }

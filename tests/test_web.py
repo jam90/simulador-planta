@@ -128,3 +128,14 @@ def test_no_borra_la_carpeta_del_historico(tmp_path):
     assert cliente.post("/api/datos/borrar", json={"confirmar": True}).status_code == 409
     assert cliente.get("/api/datos").json()["ficheros"] == d["ficheros"]
     motor.cerrar()
+
+
+def test_acceso(web, monkeypatch):
+    """«Cómo leer sus datos»: carpetas de cada canal y la carpeta base para dar rutas completas."""
+    _, cliente = web
+    f = cliente.get("/api/acceso/cnc-01").json()["ficheros"]
+    assert f["base"] and [c["clave"] for c in f["carpetas"]] == ["telemetria", "eventos"]
+    assert f["carpetas"][0]["carpeta"].endswith("L1/cnc-01/telemetria/")
+    monkeypatch.setenv("MQTT_PUERTO_EXTERNO", "1883")      # en Docker, la carpeta del contenedor no sirve fuera
+    assert cliente.get("/api/acceso/cnc-01").json()["ficheros"]["base"] is None
+    assert cliente.get("/api/acceso/no-existe").status_code == 404

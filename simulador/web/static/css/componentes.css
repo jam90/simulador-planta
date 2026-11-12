@@ -283,3 +283,16 @@ details.orden td.exceso { color: var(--ambar-txt); font-weight: 650; }
 .barra-reparto .num { text-align: right; }
 .avance.mal b { background: var(--nok); }
 .kpi-mal { border-color: var(--nok); }
+
+/* «Cómo leer sus datos»: pestañas por cliente y bloques de código para copiar */
+.pestanas { margin: 8px 0 4px; }
+.pestanas-botones { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--borde); }
+.pestanas-botones button { min-height: 0; padding: 5px 12px; border: 1px solid transparent; border-bottom: 0;
+  border-radius: 6px 6px 0 0; background: none; color: var(--tenue); font-size: 13px; margin-bottom: -1px; }
+.pestanas-botones button[aria-selected="true"] { border-color: var(--borde); background: var(--panel-2); color: var(--texto); font-weight: 600; }
+.pestanas [data-panel] { padding: 8px 0 0; }
+.pestanas [data-panel] p { margin: 6px 0; }
+.codigo { position: relative; margin: 6px 0; }
+.codigo pre { margin: 0; padding: 8px 34px 8px 10px; border: 1px solid var(--borde); border-radius: 6px; background: var(--panel-2);
+  font: 12.5px/1.45 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.codigo button.copiar { position: absolute; top: 5px; right: 5px; margin: 0; }
