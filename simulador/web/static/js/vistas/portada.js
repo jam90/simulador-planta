@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import { t } from "../i18n.js";
 import { $, duracion, esc, hora, horaIso, insignia, nombreTurno, num, pct, poner } from "../util.js";
 import { Sinoptico } from "../componentes/sinoptico.js";
+import { modulo } from "../equipos/index.js";
 import { htmlIncidencias, actualizarIncidencias, escucharIncidencias } from "../componentes/incidencias.js";
 
 let raiz = null, sinoptico = null, temporizador = null;
@@ -21,6 +22,7 @@ function montar(el, ctx) {
       <p class="nota aviso-modo" id="portada-modo" hidden></p>
       <p class="nota solo-movil" data-i18n="portada.desliza"></p>
       <div id="sinoptico" class="contenedor-sinoptico"></div>
+      <ul class="lista-equipos solo-movil" id="portada-equipos" data-i18n-aria="conf.equipos"></ul>
       ${(ctx.plano.cintas || []).some((c) => c.pasos?.length) ? `<ol class="pasos-leyenda">
         ${[1, 2, 3, 4].map((n) => `<li><b>${n}</b><span data-i18n="portada.paso${n}"></span></li>`).join("")}</ol>` : ""}
       <p class="nota" data-i18n="portada.ayuda_sinoptico"></p>
@@ -149,6 +151,15 @@ async function pedirAvisos() {
 function actualizar(ctx) {
   if (!raiz) return;
   sinoptico?.actualizar(ctx);
+  // En pantallas estrechas, los equipos también en lista (el esquema queda pequeño)
+  poner($("#portada-equipos", raiz), ctx.plano.equipos.map((e) => {
+    const ve = ctx.vista.equipos[e.id];
+    let clave = "";
+    try { clave = ve ? modulo(e.tipo).clave({ id: e.id, meta: e, estado: ve.estado, valores: ve.valores || {},
+      linea: ctx.vista.lineas.find((l) => l.id === e.linea) }) || "" : ""; } catch { /* sin valores todavía */ }
+    return `<li><a href="#/equipo/${esc(e.id)}"><b>${esc(e.id)}</b><small>${esc(e.descripcion)}</small></a>
+      <span class="mono">${esc(clave)}</span>${insignia(ve?.estado)}</li>`;
+  }).join(""));
   pintarKpis(ctx);
   pintarIncidencias(ctx);
   const modo = $("#portada-modo", raiz);

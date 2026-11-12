@@ -62,6 +62,15 @@ a.kpi-enlace:hover { text-decoration: none; border-color: var(--azul); }
 .pasos-leyenda b { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--azul);
   display: inline-grid; place-items: center; font-size: 11px; color: var(--paso-txt); }
 .solo-movil { display: none; }
+.lista-equipos { list-style: none; margin: 10px 4px 4px; padding: 0; }
+.lista-equipos li { display: flex; align-items: center; gap: 10px; padding: 7px 2px; border-top: 1px solid var(--borde); }
+.lista-equipos a { flex: 1; min-width: 0; display: grid; }
+.lista-equipos small { color: var(--suave); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-equipos .mono { font-size: 12px; color: var(--suave); white-space: nowrap; }
+/* Botón de copiar junto a un topic, una carpeta o un mensaje */
+button.copiar { min-height: 0; padding: 3px 5px; margin-left: 4px; line-height: 1; vertical-align: middle; display: inline-flex;
+  border-color: transparent; background: transparent; color: var(--suave); }
+button.copiar:hover { color: var(--azul); border-color: var(--borde); }
 @media (max-width: 1060px) { .solo-movil { display: block; } }
 
 /* Datos y salidas */
@@ -73,11 +82,19 @@ a.kpi-enlace:hover { text-decoration: none; border-color: var(--azul); }
 .opcion p { margin: 4px 0 0 42px; }
 .contadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
 .contador small { overflow-wrap: anywhere; }
+.dialogo { border: 1px solid var(--borde); border-radius: var(--radio); background: var(--panel); color: var(--texto);
+  padding: 18px 20px; max-width: min(92vw, 460px); box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.dialogo::backdrop { background: rgba(0,0,0,.45); }
+.dialogo p { margin: 0 0 14px; overflow-wrap: anywhere; }
+.dialogo .botones { display: flex; justify-content: flex-end; gap: 8px; }
 .contador { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; }
 .contador b { font-size: 18px; }
 .mensajes { max-height: 420px; overflow: auto; font: 12px/1.5 var(--mono); background: var(--panel-2);
   border-radius: 8px; padding: 6px 8px; }
-.mensaje { padding: 3px 0; border-bottom: 1px solid var(--borde); overflow-wrap: anywhere; }
+.mensaje { padding: 3px 0; border-bottom: 1px solid var(--borde); overflow-wrap: anywhere; cursor: pointer; }
+.mensaje:hover { background: color-mix(in srgb, var(--azul) 6%, transparent); }
+.mensaje.abierto { cursor: default; background: var(--panel); padding: 4px 8px; border-radius: 6px; }
+.mensaje pre { margin: 2px 0 4px; font: inherit; white-space: pre-wrap; }
 .etiqueta-canal { display: inline-block; min-width: 92px; margin-right: 8px; font-family: var(--fuente);
   font-size: 11px; font-weight: 650; color: var(--suave); }
 .c-eventos .etiqueta-canal { color: var(--naranja-txt); }

@@ -7,6 +7,7 @@ para leer, lo que necesita la vista animada de la planta (/api/vista,
 """
 import json
 import os
+import shutil
 import threading
 from datetime import timedelta
 from pathlib import Path
@@ -18,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..equipos import EquipoLinea
+from ..salidas import CARPETAS_GENERADAS
 from ..tiempo import a_iso, a_local
 from .observador import Observador, finito
 
@@ -51,6 +53,33 @@ def acceso(motor, eq) -> dict:
                          for c in eq.canales],
         }
     return resultado
+
+
+# Carpetas reservadas a los históricos (se generan por línea de comandos): la web nunca las borra
+CARPETAS_HISTORICO = ("datos", "datos-sucios")
+
+
+def datos_guardados(motor) -> dict:
+    """Qué ha escrito el simulador en su carpeta de salida y si se puede borrar desde la web.
+
+    Solo se cuentan (y se borran) las carpetas que genera el propio simulador, dentro de la carpeta
+    de salida con la que arrancó: nunca una ruta que llegue del navegador.
+    """
+    jsonl = next((s for s in motor.salidas if s.nombre == "jsonl"), None)
+    if not jsonl:
+        return {"carpeta": None, "carpetas": [], "ficheros": 0, "bytes": 0, "borrable": False, "motivo": "sin_ficheros"}
+    raiz = Path(jsonl.ruta)
+    nombres = CARPETAS_GENERADAS + tuple(sorted({e.linea_id for e in motor.planta.equipos.values()}))
+    carpetas = [raiz / n for n in nombres if (raiz / n).is_dir()]
+    ficheros = [f for c in carpetas for f in c.rglob("*") if f.is_file()]
+    protegida = raiz.resolve().name in CARPETAS_HISTORICO
+    return {"carpeta": str(raiz), "carpetas": carpetas, "ficheros": len(ficheros),
+            "bytes": sum(f.stat().st_size for f in ficheros),
+            "borrable": not protegida, "motivo": "historico" if protegida else None}
+
+
+class Confirmar(BaseModel):
+    confirmar: bool = False
 
 
 class Publicar(BaseModel):
@@ -205,6 +234,30 @@ def crear_app(motor) -> FastAPI:
             if datos.pausado is not None:
                 motor.pausado = datos.pausado
         return {"ok": True}
+
+    @app.get("/api/datos")
+    def datos_en_disco():
+        with motor.lock:
+            motor._vaciar()
+            d = datos_guardados(motor)
+        d.pop("carpetas")
+        return d
+
+    @app.post("/api/datos/borrar")
+    def borrar_datos(datos: Confirmar):
+        """Borra lo que el simulador ha escrito en su carpeta de salida. La simulación sigue."""
+        if not datos.confirmar:
+            raise HTTPException(400, "Falta la confirmación")
+        with motor.lock:
+            d = datos_guardados(motor)
+            if not d["borrable"]:
+                raise HTTPException(409, f"La carpeta {d['carpeta']} es la del histórico: no se borra desde la web")
+            for s in motor.salidas:
+                if hasattr(s, "ruta"):          # las salidas de fichero: se cierran y vuelven a abrir al escribir
+                    s.cerrar()
+            for c in d["carpetas"]:
+                shutil.rmtree(c, ignore_errors=True)
+        return {"ok": True, "carpeta": d["carpeta"], "ficheros": d["ficheros"]}
 
     @app.post("/api/incidencias")
     def incidencia(datos: Incidencia):

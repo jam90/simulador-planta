@@ -7,6 +7,10 @@ from .jsonl import SalidaJsonl
 from .logs import SalidaLogs
 
 
+# Carpetas que genera el simulador dentro de la carpeta de datos (además de una por línea)
+CARPETAS_GENERADAS = ("telemetria", "eventos", "textos", "inspecciones", "ordenes", "energia", "logs")
+
+
 def crear_salidas(config: dict) -> list:
     tz = ZoneInfo(config["planta"].get("zona_horaria", "Europe/Madrid"))
     cfg = config.get("salidas", {}) or {}

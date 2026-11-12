@@ -98,3 +98,33 @@ def test_claves_usadas_existen():
         usadas |= set(re.findall(r'\bt\("([a-z_]+\.[a-z0-9_]+)"', texto))
         usadas |= set(re.findall(r'data-i18n(?:-html|-title|-aria)?="([a-z_]+\.[a-z0-9_]+)"', texto))
     assert usadas - es == set()
+
+
+def test_borrar_datos(web, tmp_path):
+    motor, cliente = web
+    d = cliente.get("/api/datos").json()
+    assert d["carpeta"] == str(tmp_path) and d["ficheros"] > 10 and d["bytes"] > 0 and d["borrable"]
+    otro = tmp_path / "apuntes.txt"                     # lo que no es del simulador no se toca
+    otro.write_text("mío")
+    assert cliente.post("/api/datos/borrar", json={}).status_code == 400
+    assert cliente.get("/api/datos").json()["ficheros"] == d["ficheros"]
+    r = cliente.post("/api/datos/borrar", json={"confirmar": True}).json()
+    assert r["ficheros"] == d["ficheros"]
+    assert cliente.get("/api/datos").json()["ficheros"] == 0 and otro.exists()
+    t = motor.planta.t                                  # la simulación sigue y vuelve a escribir
+    motor.historico(t, t + 600, 5)
+    assert cliente.get("/api/datos").json()["ficheros"] > 10
+
+
+def test_no_borra_la_carpeta_del_historico(tmp_path):
+    carpeta = tmp_path / "datos"
+    cfg = config(carpeta)
+    motor = Motor(cfg, crear_salidas(cfg))
+    cliente = TestClient(crear_app(motor))
+    t0 = epoch(2026, 9, 1, 8)
+    motor.historico(t0, t0 + 600, 5)
+    d = cliente.get("/api/datos").json()
+    assert d["ficheros"] > 0 and not d["borrable"] and d["motivo"] == "historico"
+    assert cliente.post("/api/datos/borrar", json={"confirmar": True}).status_code == 409
+    assert cliente.get("/api/datos").json()["ficheros"] == d["ficheros"]
+    motor.cerrar()

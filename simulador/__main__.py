@@ -14,12 +14,10 @@ from pathlib import Path
 import yaml
 
 from .motor import Motor
-from .salidas import crear_salidas
+from .salidas import CARPETAS_GENERADAS, crear_salidas
 
 log = logging.getLogger("simulador")
 
-# Carpetas que genera el simulador dentro de la carpeta de datos (además de una por línea)
-CARPETAS_GENERADAS = ("telemetria", "eventos", "textos", "inspecciones", "ordenes", "energia", "logs")
 
 
 def cargar_config(ruta):

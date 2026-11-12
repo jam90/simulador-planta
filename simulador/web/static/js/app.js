@@ -42,8 +42,8 @@ function leerRuta() {
 function navegar() {
   const { nombre, params } = leerRuta();
   if (actual?.modulo.desmontar) actual.modulo.desmontar();
-  const el = $("#vista");
-  el.innerHTML = "";
+  const viejo = $("#vista"), el = viejo.cloneNode(false);
+  viejo.replaceWith(el);
   actual = { nombre, modulo: VISTAS[nombre], params };
   actual.modulo.montar(el, ctx, params);
   traducir(el);

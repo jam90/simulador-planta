@@ -55,7 +55,8 @@ export function escucharIncidencias(raiz) {
     if (incidencia === "averia" || incidencia === "microparada") cuerpo.equipo = equipo;
     try {
       await api("/api/incidencias", cuerpo);
-      avisar(t("inc.enviada", { incidencia: t(`inc.${incidencia}`), equipo }), "ok");
+      avisar(t("inc.enviada", { incidencia: t(`inc.${incidencia}`), equipo }), "ok",
+        { href: "#/configuracion", texto: t("inc.ver_mensajes") });
     } catch { return; }
     refrescarYa();
   });

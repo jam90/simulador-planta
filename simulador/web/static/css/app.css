@@ -48,6 +48,7 @@ main.vista { max-width: 1600px; margin: 0 auto; padding: 16px 20px 40px; }
   background: var(--aviso-fondo); color: var(--aviso-texto); padding: 10px 16px; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,.25); max-width: min(90vw, 640px); display: none; }
 #aviso.ok { background: var(--ok); color: #fff; }
+#aviso a { color: inherit; text-decoration: underline; font-weight: 650; }
 #aviso.error { background: var(--nok); color: #fff; }
 
 .sin-conexion { position: fixed; inset: auto 0 0 0; background: var(--nok); color: #fff; text-align: center;
