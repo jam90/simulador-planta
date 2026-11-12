@@ -70,6 +70,8 @@ export default {
     const activo = ACTIVOS.has(d.estado);
     let f = rapido ? (d.produce ? faseRapida(1.8, variante === "soldadura" ? 0.35 : 0) : null) : fase(d.ciclos, tm);
     if (!activo && !rapido) f = fase(d.ciclos, tm);       // un ciclo que ya había empezado termina
+    // Sin pieza delante (los dos primeros ciclos tras arrancar el simulador), no suelda al aire
+    if (variante === "soldadura" && d.conPieza === false) f = null;
     const [tx, ty] = f === null ? CASA : interpolar(RECORRIDO[variante], f);
     const { ex, ey, px, py } = brazo(...HOMBRO, tx, ty, L1, L2);
     attr(p.b1, "x2", ex); attr(p.b1, "y2", ey);

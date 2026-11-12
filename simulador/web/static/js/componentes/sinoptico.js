@@ -316,7 +316,7 @@ export class Sinoptico {
         const r = cinta instanceof Celda ? cinta.animar(tm, l, this.vista, rapido, pausa ? 0 : dtReal, pausa)
           : cinta.animar(tm, corre, l.piezas, l.intervalo_pieza, rapido, pausa ? 0 : dtReal);
         for (const d of Object.values(this.datos)) {
-          if (d.meta.linea === linea) { d.bajo = r.bajo; d.ultimo = r.ultimo; }
+          if (d.meta.linea === linea) { d.bajo = r.bajo; d.ultimo = r.ultimo; d.conPieza = r.conPieza; }
         }
         r.linea = linea;
         repres[linea] = r.ciclos ? r : null;

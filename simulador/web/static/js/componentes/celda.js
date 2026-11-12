@@ -149,6 +149,18 @@ export class Celda {
       fin: tt > ida + QUEDA * I };
   }
 
+  /**
+   * ¿Hay pieza para el ciclo de soldadura en curso? El robot suelda la pieza que entró dos ciclos
+   * antes; en los dos primeros ciclos tras arrancar el simulador esa pieza no existe.
+   * Devuelve null si el robot no está en un ciclo.
+   */
+  _piezaParaSoldar(tm, A, I, vista) {
+    const c = (vista.equipos[this.eq.soldadura]?.ciclos || []).find(([ini, fin]) => tm >= ini && tm < fin);
+    if (!c) return null;
+    const j = A.findIndex(([t]) => c[0] >= t - 0.05 && c[0] < t + 0.9 * I);
+    return j >= 2;
+  }
+
   _rect(clave) {
     let el = this.els.get(clave);
     if (!el) {
@@ -231,6 +243,6 @@ export class Celda {
     }
     for (const [clave, el] of this.els) if (!vivas.has(clave)) { el.remove(); this.els.delete(clave); }
     if (ultimo !== null) this.ultimo = ultimo;
-    return { bajo, ultimo: this.ultimo ?? null };
+    return { bajo, ultimo: this.ultimo ?? null, conPieza: this._piezaParaSoldar(tm, A, l.intervalo_pieza, vista) };
   }
 }
