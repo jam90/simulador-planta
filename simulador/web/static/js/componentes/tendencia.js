@@ -25,7 +25,7 @@ export function unidad(campo) {
 
 /** Marcas limpias del eje: 3 o 4 valores redondos que cubren [min, max]. */
 function marcas(min, max) {
-  if (min === max) { const d = Math.abs(min) * 0.1 || 1; min -= d; max += d; }
+  if (min === max) { if (min === 0) max = 1; else { const d = Math.abs(min) * 0.1; min -= d; max += d; } }
   const paso0 = (max - min) / 3;
   const pot = 10 ** Math.floor(Math.log10(paso0));
   const paso = [1, 2, 2.5, 5, 10].map((k) => k * pot).find((p) => p >= paso0) || 10 * pot;

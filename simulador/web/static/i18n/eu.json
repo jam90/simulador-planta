@@ -196,6 +196,7 @@
   "portada.orden": "Fabrikazio-agindua",
   "portada.oee": "Txandako OEE (gutxi gorabehera)",
   "portada.oee_pie": "Webak kalkulatua: erabilgarritasuna × errendimendua × kalitatea",
+  "oee.pocos_datos": "Txanda hasi berria: hain pieza gutxirekin, OEE asko aldatzen da oraindik.",
   "portada.energia": "Lantegiaren kontsumoa",
   "portada.energia_pie": "Koadro elektrikoen batura",
   "portada.tarifa": "Tarifa",

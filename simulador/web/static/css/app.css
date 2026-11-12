@@ -26,7 +26,7 @@
 /* La palabra «Velocidad» se ve siempre (las guías dicen «cambia Velocidad a ×60»); solo en móvil se oculta */
 @media (max-width: 760px) { .etiqueta-vel { display: none; } }
 /* Y con menos aún, el nombre del simulador: queda el logo (que lleva a la portada) */
-@media (max-width: 1680px) { .marca span { display: none; } }
+@media (max-width: 1540px) { .marca span { display: none; } }
 .en-pausa { --c: var(--azul); margin-left: 6px; vertical-align: middle; }
 .en-pausa::before { animation: latido 1.2s ease-in-out infinite; }
 

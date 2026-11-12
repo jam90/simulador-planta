@@ -73,9 +73,9 @@ function pintarKpis(ctx) {
         <i class="avance"><b style="width:${(100 * k2).toFixed(1)}%"></b></i>` : "", "kpi-ancha"));
     const oee = kl?.oee;
     partes.push(tarjeta(t("portada.oee"), oee?.oee === null || oee?.oee === undefined ? "–" : pct(oee.oee, 0),
-      esc(t("portada.oee_pie")),
+      esc(t(kl?.en_curso && kl.piezas < 20 ? "oee.pocos_datos" : "portada.oee_pie")),
       `<div class="factores">${barraOee(t("oee.disponibilidad"), oee?.disponibilidad)}${barraOee(t("oee.rendimiento"), oee?.rendimiento)}${barraOee(t("oee.calidad"), oee?.calidad)}</div>`,
-      "kpi-ancha kpi-oee", "#/produccion"));
+      `kpi-ancha kpi-oee${kl?.en_curso && kl.piezas < 20 ? " pocos-datos" : ""}`, "#/produccion"));
   }
   // Potencias del mismo instante que el sinóptico (vista); periodo y coste, de los indicadores
   const en = k.energia;

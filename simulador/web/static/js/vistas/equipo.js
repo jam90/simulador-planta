@@ -43,9 +43,11 @@ function montar(el, ctx, params) {
     </div>
     <div class="ficha">
       <div class="ficha-principal">
-        <section class="tarjeta tarjeta-dibujo"><div id="ficha-dibujo" class="dibujo"></div>
-          <p class="nota" data-i18n="ficha.dibujo_ayuda"></p></section>
-        <div id="ficha-destacados" class="destacados"></div>
+        <div class="ficha-cabeza">
+          <section class="tarjeta tarjeta-dibujo"><div id="ficha-dibujo" class="dibujo"></div>
+            <p class="nota" data-i18n="ficha.dibujo_ayuda"></p></section>
+          <div id="ficha-destacados" class="destacados"></div>
+        </div>
         <section class="tarjeta" id="ficha-tendencia-tarjeta" hidden>
           <header><h2 data-i18n="ficha.tendencia"></h2>
             <button id="ficha-ver-tabla" class="icono" aria-pressed="false" data-i18n="ficha.ver_tabla"></button></header>

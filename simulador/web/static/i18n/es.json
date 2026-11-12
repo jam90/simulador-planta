@@ -196,6 +196,7 @@
   "portada.orden": "Orden de fabricación",
   "portada.oee": "OEE aproximado del turno",
   "portada.oee_pie": "Calculado por la web: disponibilidad × rendimiento × calidad",
+  "oee.pocos_datos": "Turno recién empezado: con tan pocas piezas, el OEE todavía oscila mucho.",
   "portada.energia": "Consumo de la planta",
   "portada.energia_pie": "Suma de los cuadros eléctricos",
   "portada.tarifa": "Tarifa",

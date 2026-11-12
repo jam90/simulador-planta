@@ -8,6 +8,8 @@ import { htmlInspecciones, htmlOrdenes } from "../componentes/registros.js";
 
 let raiz = null, temporizador = null, recientes = {};
 const VENTANA_S = 3600;
+/** Con el turno recién empezado, el OEE oscila mucho: se avisa. */
+const pocosDatos = (k) => k.en_curso && k.piezas < 20;
 const PASO_CRONO_S = 60;       // la cronología se rehace como mucho una vez por minuto simulado
 
 function montar(el, ctx) {
@@ -89,14 +91,16 @@ function actualizar(ctx) {
 
     const oee = k?.oee;
     poner(parte(b, "oee"), k ? `
-      <p class="kpi-grande">${oee.oee === null ? "–" : pct(oee.oee, 0)}</p>
+      <p class="kpi-grande${pocosDatos(k) ? " pocos-datos" : ""}">${oee.oee === null ? "–" : pct(oee.oee, 0)}</p>
       <div class="factores">${barra(t("oee.disponibilidad"), oee.disponibilidad)}${barra(t("oee.rendimiento"), oee.rendimiento)}${barra(t("oee.calidad"), oee.calidad)}</div>
-      <p class="nota">${esc(t("prod.oee_turno", { turno: nombreTurno(k.turno) }))}${k.completo ? "" : " " + esc(t("prod.oee_desde", { h: hora(k.desde, false) }))}</p>`
+      <p class="nota">${esc(t("prod.oee_turno", { turno: nombreTurno(k.turno) }))}${k.completo ? "" : " " + esc(t("prod.oee_desde", { h: hora(k.desde, false) }))}${pocosDatos(k) ? " " + esc(t("oee.pocos_datos")) : ""}</p>`
       : `<p class="nota">${esc(t("prod.sin_turno"))}</p>`);
 
     const crono = parte(b, "crono");
     const ancho = Math.max(300, crono.clientWidth || 900);
-    const t1 = Math.ceil(v.t / PASO_CRONO_S) * PASO_CRONO_S, t0 = t1 - VENTANA_S;
+    const t1 = Math.ceil(v.t / PASO_CRONO_S) * PASO_CRONO_S;
+    // Recién arrancado, la franja empieza en el primer estado conocido (con un mínimo de 10 minutos)
+    const t0 = Math.max(t1 - VENTANA_S, Math.min(l.estados[0]?.[0] ?? t1, t1 - 600));
     const ultimo = l.estados[l.estados.length - 1];
     const claveC = `${l.estados.length}|${ultimo?.[0]}|${t1}|${ancho}|${idioma()}`;
     if (crono.dataset.clave !== claveC) { crono.innerHTML = htmlCronologia(l.estados, t0, t1, ancho, v.t); crono.dataset.clave = claveC; }

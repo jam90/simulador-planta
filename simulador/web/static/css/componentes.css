@@ -10,6 +10,7 @@
 /* OEE: la cifra a la izquierda y sus tres factores a la derecha */
 .kpi-oee { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
 .kpi-oee small, .kpi-oee em { grid-column: 1 / -1; }
+.kpi-oee.pocos-datos > b, .kpi-grande.pocos-datos { color: var(--suave); }
 .kpi small { color: var(--suave); font-size: 12px; font-weight: 600; }
 .kpi b { font-size: 24px; font-weight: 750; line-height: 1.15; }
 .kpi b span { font-size: 14px; font-weight: 600; color: var(--suave); }
@@ -17,8 +18,8 @@
 .kpi em { font-style: normal; font-size: 11.5px; color: var(--tenue); }
 .kpi .ok { color: var(--ok-txt); font-weight: 650; } .kpi .nok { color: var(--nok); font-weight: 650; }
 .kpi .okno, .kpi .energia-lineas { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
-.avance { display: block; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; margin-top: 2px; }
-.avance b { display: block; height: 100%; background: var(--acento); border-radius: 3px; transition: width .6s; }
+.avance { display: block; height: 6px; border-radius: 3px; background: var(--borde); overflow: hidden; margin-top: 2px; }
+.avance b { display: block; min-width: 4px; height: 100%; background: var(--acento); border-radius: 3px; transition: width .6s; }
 .factores { display: grid; gap: 3px; margin-top: 2px; }
 .factor { display: grid; grid-template-columns: minmax(86px, max-content) 1fr 40px; gap: 8px; align-items: center; font-size: 12px; color: var(--suave); }
 .factor i { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
@@ -80,11 +81,16 @@ a.kpi-enlace:hover { text-decoration: none; border-color: var(--azul); }
 .tarjeta-dibujo { padding: 8px; }
 .tarjeta-dibujo .nota { margin: 4px 8px; }
 .dibujo { min-height: 120px; }
-.dibujo svg { width: 100%; height: auto; display: block; max-height: 420px; }
+.dibujo svg { width: 100%; height: auto; display: block; max-height: 280px; }
+/* El dibujo y, a su lado, los indicadores del equipo (debajo, si no hay sitio) */
+.ficha-cabeza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.ficha-cabeza:has(.destacados:empty) { grid-template-columns: 1fr; }
+.ficha-cabeza .destacados { grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+@media (max-width: 1250px) { .ficha-cabeza { grid-template-columns: 1fr; } }
 .destacados { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .destacados:empty { display: none; }
 .destacado { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 10px 12px;
-  display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 6px; box-shadow: var(--sombra); }
+  display: grid; grid-template-columns: auto 1fr; align-items: baseline; align-content: start; column-gap: 6px; box-shadow: var(--sombra); }
 .destacado small { grid-column: 1 / -1; color: var(--suave); font-size: 12px; }
 .destacado b { font-size: 22px; font-weight: 700; }
 .destacado span { color: var(--suave); }
@@ -97,6 +103,7 @@ a.kpi-enlace:hover { text-decoration: none; border-color: var(--azul); }
 .valores td.num { white-space: nowrap; }
 .lista-acceso { margin: 0; padding-left: 18px; }
 .lista-acceso li { margin: 4px 0; }
+.lista-acceso code { overflow-wrap: anywhere; }
 .aviso-salida { color: var(--ambar-txt); }
 .campos { display: flex; gap: 6px; flex-wrap: wrap; }
 .campos button { min-height: 26px; padding: 2px 8px; font: 12px var(--mono); }

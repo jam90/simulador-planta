@@ -196,6 +196,7 @@
   "portada.orden": "Production order",
   "portada.oee": "Approximate shift OEE",
   "portada.oee_pie": "Calculated by the web page: availability × performance × quality",
+  "oee.pocos_datos": "The shift has just started: with so few pieces, the OEE still swings a lot.",
   "portada.energia": "Plant consumption",
   "portada.energia_pie": "Sum of the distribution boards",
   "portada.tarifa": "Tariff",

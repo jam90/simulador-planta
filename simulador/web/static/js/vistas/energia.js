@@ -102,8 +102,8 @@ function dibujarFlujo() {
   const nodo = ({ e, x, y }) => {
     if (e.tipo === "barra") {
       return `<g class="barra-planta"><rect x="${x - 8}" y="${y - BARRA_ALTO / 2}" width="16" height="${BARRA_ALTO}" rx="4"/>
-        <text class="nodo-nombre" x="${x}" y="${y + BARRA_ALTO / 2 + 16}" text-anchor="middle">${esc(t("ener.barra"))}</text>
-        <text class="nodo-valor" data-valor="__barra" x="${x}" y="${y + BARRA_ALTO / 2 + 31}" text-anchor="middle">–</text>
+        <text class="nodo-nombre" x="${x + 8}" y="${y + BARRA_ALTO / 2 + 16}" text-anchor="end">${esc(t("ener.barra"))}</text>
+        <text class="nodo-valor" data-valor="__barra" x="${x + 8}" y="${y + BARRA_ALTO / 2 + 31}" text-anchor="end">–</text>
         <title>${esc(t("ener.barra_ayuda"))}</title></g>`;
     }
     const img = e.tipo === "red" ? "" : `<image href="/static/img/equipos/${esc(modulo(e.tipo).imagen(e))}.webp" x="${x - MEDIO + 6}" y="${y - 20}" width="40" height="40"/>`;
