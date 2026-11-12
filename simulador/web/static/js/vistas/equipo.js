@@ -27,9 +27,21 @@ function montar(el, ctx, params) {
     return;
   }
   mod = modulo(meta.tipo);
+  // Para pasar a otra ficha sin volver a la portada: anterior, siguiente y lista por zonas
+  const todos = ctx.plano.equipos, pos = todos.indexOf(meta);
+  const ant = todos[(pos - 1 + todos.length) % todos.length], sig = todos[(pos + 1) % todos.length];
+  const zonas = [...new Set(todos.map((e) => e.linea))];
   el.innerHTML = `
     <div class="titulo-vista titulo-ficha">
-      <a href="#/" class="volver" data-i18n="ficha.volver"></a>
+      <nav class="nav-ficha">
+        <a href="#/" class="volver" data-i18n="ficha.volver"></a>
+        <span class="separa"></span>
+        <a href="#/equipo/${esc(ant.id)}" class="otro ant" data-i18n-title="ficha.anterior">${esc(ant.id)}</a>
+        <select id="ficha-ir" data-i18n-aria="ficha.ir_a">${zonas.map((z) => `<optgroup label="${esc(z)}">
+          ${todos.filter((e) => e.linea === z).map((e) => `<option value="${esc(e.id)}"${e === meta ? " selected" : ""}>${esc(e.id)}</option>`).join("")}
+          </optgroup>`).join("")}</select>
+        <a href="#/equipo/${esc(sig.id)}" class="otro sig" data-i18n-title="ficha.siguiente">${esc(sig.id)}</a>
+      </nav>
       <img class="ilustracion" alt="" src="/static/img/equipos/${esc(mod.imagen(meta))}.webp" onerror="this.remove()">
       <div class="nombre">
         <h1>${esc(id)} <span id="ficha-estado"></span></h1>
@@ -74,6 +86,7 @@ function montar(el, ctx, params) {
         </section>
       </div>
     </div>`;
+  $("#ficha-ir", el).addEventListener("change", (ev) => { location.hash = `#/equipo/${encodeURIComponent(ev.target.value)}`; });
   nodoDibujo = null;
   claveSalidas = "";
   escucharIncidencias(el);

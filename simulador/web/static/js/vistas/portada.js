@@ -15,7 +15,9 @@ function montar(el, ctx) {
       <header><h2 data-i18n="portada.planta_vivo"></h2>
 
         <div class="leyenda">${["PRODUCCION", "ARRANQUE", "ESPERA", "MICROPARADA", "AVERIA", "MANTENIMIENTO", "CAMBIO_FORMATO", "PARADA"]
-          .map((e) => insignia(e)).join("")}</div></header>
+          .map((e) => insignia(e)).join("")}</div>
+        <span class="separa"></span>
+        <button class="icono" id="portada-completa" aria-pressed="false" data-i18n="portada.pantalla_completa"></button></header>
       <p class="nota aviso-modo" id="portada-modo" hidden></p>
       <p class="nota solo-movil" data-i18n="portada.desliza"></p>
       <div id="sinoptico" class="contenedor-sinoptico"></div>
@@ -31,6 +33,17 @@ function montar(el, ctx) {
         <ul class="eventos" id="portada-avisos"></ul></section>
     </div>`;
   sinoptico = new Sinoptico($("#sinoptico", el), ctx.plano);
+  // Pantalla completa (para proyectar): solo la tarjeta del esquema
+  const tarjetaSin = $(".tarjeta-sinoptico", el), botonCompleta = $("#portada-completa", el);
+  botonCompleta.hidden = !tarjetaSin.requestFullscreen;
+  botonCompleta.addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen(); else tarjetaSin.requestFullscreen().catch(() => {});
+  });
+  tarjetaSin.addEventListener("fullscreenchange", () => {
+    const si = document.fullscreenElement === tarjetaSin;
+    botonCompleta.setAttribute("aria-pressed", String(si));
+    botonCompleta.textContent = t(si ? "portada.salir_completa" : "portada.pantalla_completa");
+  });
   escucharIncidencias(el);
   pedirAvisos();
   temporizador = setInterval(pedirAvisos, 3000);

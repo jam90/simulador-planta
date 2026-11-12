@@ -4,7 +4,7 @@
 // (js/equipos/). Un equipo que no esté en el plano se coloca solo, en su zona. Todo lo que se mueve
 // usa la hora dibujada (reloj.js), que va unos segundos por detrás de la simulación.
 import { t } from "../i18n.js";
-import { esc } from "../util.js";
+import { esc, insignia } from "../util.js";
 import { modulo } from "../equipos/index.js";
 import { DEFS, PRODUCE } from "../equipos/svg.js";
 import * as reloj from "../reloj.js";
@@ -43,7 +43,7 @@ function htmlEquipo(e, pos, i = 0) {
   const mod = modulo(e.tipo);
   return `<a href="#/equipo/${esc(e.id)}" class="eq-enlace" tabindex="-1" aria-hidden="true">
     <g class="eq-sin tipo-${esc(e.tipo)}" data-id="${esc(e.id)}" data-copia="${i}" transform="translate(${pos.x} ${pos.y})">
-      <title>${esc(`${e.id} · ${e.descripcion}`)}</title>${mod.icono(e)}</g></a>`;
+      ${mod.icono(e)}</g></a>`;
 }
 
 /** Nombre y valor corto de un equipo: es el enlace que recibe el foco del teclado. */
@@ -126,6 +126,23 @@ export class Sinoptico {
       const id = ev.target.closest?.("[data-foco]")?.dataset.foco;
       if (id) for (const n of this.nodos[id] || []) n.classList.toggle("enfocado", si);
     };
+    // Al pasar el ratón por un equipo: su estado y sus valores principales, sin entrar en la ficha
+    this.pista = document.createElement("div");
+    this.pista.className = "pista-equipo";
+    this.pista.hidden = true;
+    contenedor.after(this.pista);
+    this.pistaId = null;
+    this.svg.addEventListener("pointermove", (ev) => {
+      const id = ev.pointerType === "mouse" ? ev.target.closest?.(".eq-sin")?.dataset.id : null;
+      if (id !== this.pistaId) { this.pistaId = id || null; this._pintarPista(); }
+      if (!id) return;
+      const { offsetWidth: w, offsetHeight: h } = this.pista;
+      const x = Math.min(ev.clientX + 16, window.innerWidth - w - 8);
+      const y = ev.clientY + 18 + h > window.innerHeight ? ev.clientY - h - 12 : ev.clientY + 18;
+      this.pista.style.left = `${Math.max(8, x)}px`;
+      this.pista.style.top = `${Math.max(8, y)}px`;
+    });
+    this.svg.addEventListener("pointerleave", () => { this.pistaId = null; this._pintarPista(); });
     this.svg.addEventListener("focusin", (ev) => marcar(ev, true));
     this.svg.addEventListener("focusout", (ev) => marcar(ev, false));
     this.nodos = {};
@@ -147,12 +164,28 @@ export class Sinoptico {
   destruir() {
     cancelAnimationFrame(this.marco);
     this.marco = null;
+    this.pista.remove();
+  }
+
+  /** Contenido del cuadro que acompaña al ratón (los mismos indicadores que encabezan la ficha). */
+  _pintarPista() {
+    const d = this.pistaId ? this.datos[this.pistaId] : null;
+    this.pista.hidden = !d;
+    if (!d) return;
+    let dest = [];
+    try { dest = (modulo(d.meta.tipo).destacados?.({ ...d, estado: d.estadoActual }, this.ctx) || []).slice(0, 4); } catch { /* sin valores todavía */ }
+    const h = `<div class="pista-cab"><b>${esc(d.id)}</b>${insignia(d.estadoActual)}</div>
+      <div class="pista-desc">${esc(d.meta.descripcion || "")}</div>
+      ${dest.length ? `<dl>${dest.map((x) => `<dt>${esc(x.titulo)}</dt>
+        <dd>${x.html ?? esc(x.valor ?? "")}${x.unidad ? ` <span>${esc(x.unidad)}</span>` : ""}</dd>`).join("")}</dl>` : ""}`;
+    if (this.pista.innerHTML !== h) this.pista.innerHTML = h;
   }
 
   /** Datos nuevos del simulador (cada segundo). */
   actualizar(ctx) {
     const v = ctx.vista;
     this.vista = v;
+    this.ctx = ctx;
     reloj.sincronizar(v);
     for (const z of this.svg.querySelectorAll("[data-zona]")) {
       const l = ctx.plano.lineas.find((x) => x.id === z.dataset.zona);
@@ -184,6 +217,7 @@ export class Sinoptico {
       tb.classList.toggle("con-fuga", !!d?.avisos?.fuga_aire);
     }
     this._pintarEstados(true);
+    if (this.pistaId) this._pintarPista();
     for (const { linea, cinta } of this.cintas) {
       const k = ctx.kpis?.lineas?.[linea];
       cinta.rotular(k ? k.piezas_ok : null, k ? k.piezas_nok : null);
