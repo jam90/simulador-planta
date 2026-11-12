@@ -193,7 +193,7 @@ Sin Docker, la salida MQTT necesita un broker en `localhost:1883`. Si no lo hay,
 | `--dias N` | historico | Número de días (30) |
 | `--intervalo S` | ambos | Segundos entre muestras (60 en histórico, 5 en vivo) |
 | `--sobrescribir` | ambos | Borra los datos generados anteriormente |
-| `--acelerar F` | vivo | Factor de aceleración del tiempo (1 = tiempo real) |
+| `--acelerar F` | vivo | Factor de aceleración del tiempo (1 = tiempo real). Si el valor no está en el desplegable de velocidad de la web, se añade a la lista |
 | `--historico-dias N` | vivo | Genera N días de histórico antes de empezar |
 | `--sin-web` | vivo | Sin interfaz web |
 | `--puerto P` | vivo | Puerto de la web dentro del contenedor (8000) |
