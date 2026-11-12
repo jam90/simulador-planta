@@ -11,7 +11,7 @@ export default {
   caja: [W, H],
   icono() {
     return `<g class="luz">
-      <path class="cono" data-p="cono" d="M14 24 L46 24 L96 380 L-36 380 Z"/>
+      <path class="cono" data-p="cono" d="M14 24 L46 24 L84 200 L-24 200 Z"/>
       ${zonaClic(W, H)}
       <rect class="os" x="29" y="0" width="2" height="10"/>
       <path class="m" d="M10 24 L18 10 H42 L50 24 Z"/>
@@ -22,7 +22,7 @@ export default {
     marcarEstado(nodo, d.estado);
     const p = partes(nodo);
     const nivel = Math.max(0, Math.min(100, d.valores.nivel_pct ?? 0)) / 100;
-    attr(p.cono, "opacity", d.estado === "EMERGENCIA" ? 0.06 : 0.12 + 0.33 * nivel);
+    attr(p.cono, "opacity", d.estado === "EMERGENCIA" ? 0.05 : 0.08 + 0.2 * nivel);
     clase(p.lampara, "apagada", d.estado === "EMERGENCIA");
   },
   clave: (d) => (d.valores.nivel_pct !== undefined ? `${num(d.valores.nivel_pct, 0)} %` : ""),

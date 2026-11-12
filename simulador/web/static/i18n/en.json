@@ -214,6 +214,7 @@
   "cab.velocidad_ayuda": "Simulation speed (×1 = real time)",
   "dest.nok_total": "NOK {nok} / {total} in total",
   "portada.desliza": "Swipe the diagram sideways to see the whole plant.",
+  "portada.aire": "Compressed air",
   "portada.de_la_orden": "{hechas} of {total} parts in the order",
   "portada.paso1": "Loading: robot-01 picks the raw part from the conveyor and places it on the CNC loading pallet.",
   "portada.paso2": "Machining: when the previous part is finished, the pallets swap; the CNC machines the part and it comes out onto the conveyor.",

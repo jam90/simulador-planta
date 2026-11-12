@@ -15,7 +15,7 @@ export default {
       <text class="txt-pant grande" x="43" y="24" text-anchor="middle" data-p="tn">–</text>
       <text class="txt-pant" x="43" y="39" text-anchor="middle" data-p="hn">–</text>
       <path class="m2" d="M38 66 h10 v12 a5 5 0 0 1 -10 0z"/>
-      <text class="txt-mini" x="43" y="58" text-anchor="middle" data-p="te">–</text>
+      <text class="txt-mini estrecho" x="43" y="58" text-anchor="middle" data-p="te">–</text>
     </g>`;
   },
   actualizar(nodo, d) {

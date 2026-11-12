@@ -54,7 +54,7 @@ function htmlEtiqueta(e) {
   const ancla = pos.ancla || "middle";
   return `<a href="#/equipo/${esc(e.id)}" class="etiqueta-foco" data-foco="${esc(e.id)}" aria-label="${esc(`${e.id}: ${e.descripcion}`)}">
     <g class="etiqueta"><text class="nombre-eq" x="${etiqueta[0]}" y="${etiqueta[1]}" text-anchor="${ancla}">${esc(e.id)}</text>
-      <text class="clave-eq" data-clave="${esc(e.id)}" x="${etiqueta[0]}" y="${etiqueta[1] + 14}" text-anchor="${ancla}"></text></g></a>`;
+      <text class="clave-eq" data-clave="${esc(e.id)}" x="${etiqueta[0]}" y="${etiqueta[1] + 15}" text-anchor="${ancla}"></text></g></a>`;
 }
 
 /** Orden de lectura (y del tabulador): por zonas y, dentro de cada una, de izquierda a derecha. */
@@ -102,7 +102,13 @@ export class Sinoptico {
     contenedor.innerHTML = `<svg class="sv sinoptico" viewBox="0 0 ${p.lienzo[0]} ${p.lienzo[1]}" role="group"
         aria-label="${esc(t("portada.sinoptico_aria"))}">${DEFS}
       ${htmlFondo(p)}
-      ${(p.tuberias || []).map((tb) => `<polyline class="tuberia" data-tuberia="${esc(tb.equipo)}" points="${tb.puntos.map((q) => q.join(",")).join(" ")}"/>`).join("")}
+      ${(p.tuberias || []).map((tb) => {
+        // Tubería de aire: el tubo, su interior y, por dentro, el aire que fluye
+        const puntos = tb.puntos.map((q) => q.join(",")).join(" ");
+        return `<g class="tuberia" data-tuberia="${esc(tb.equipo)}"><polyline class="tubo-ext" points="${puntos}"/>
+          <polyline class="tubo-int" points="${puntos}"/><polyline class="tubo-flujo" points="${puntos}"/>
+          ${tb.rotulo ? `<text class="rotulo-tuberia" x="${tb.rotulo[0]}" y="${tb.rotulo[1]}">${esc(t("portada.aire"))}</text>` : ""}</g>`;
+      }).join("")}
       ${(p.cables || []).map((c) => `<polyline class="cable-red" points="${c.puntos.map((q) => q.join(",")).join(" ")}"/>`).join("")}
       ${detras.map(copias).join("")}
       ${(p.cintas || []).map((c) => htmlCinta(c, p.suelo)).join("")}
@@ -174,7 +180,7 @@ export class Sinoptico {
       const d = this.datos[tb.dataset.tuberia];
       const caudal = d?.valores.caudal_m3_min ?? 0;
       tb.classList.toggle("fluye", caudal > 0.05 && !reloj.enPausa());
-      tb.style.animationDuration = `${Math.max(0.6, 3 / Math.max(caudal, 0.3)).toFixed(2)}s`;
+      tb.style.setProperty("--dur", `${Math.max(0.6, 3 / Math.max(caudal, 0.3)).toFixed(2)}s`);
       tb.classList.toggle("con-fuga", !!d?.avisos?.fuga_aire);
     }
     this._pintarEstados(true);

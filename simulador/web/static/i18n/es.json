@@ -214,6 +214,7 @@
   "cab.velocidad_ayuda": "Velocidad de la simulación (×1 = tiempo real)",
   "dest.nok_total": "NOK {nok} / {total} en total",
   "portada.desliza": "Desliza el esquema hacia los lados para ver toda la planta.",
+  "portada.aire": "Aire comprimido",
   "portada.de_la_orden": "{hechas} de {total} piezas de la orden",
   "portada.paso1": "Carga: el robot-01 coge la pieza en bruto de la cinta y la deja en el palé de carga de la CNC.",
   "portada.paso2": "Mecanizado: al terminar la pieza anterior, se cambian los palés; la CNC mecaniza y la pieza sale a la cinta.",

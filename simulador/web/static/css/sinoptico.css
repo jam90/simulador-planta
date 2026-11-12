@@ -23,7 +23,7 @@
 .sinoptico .cubierta, .sinoptico .muro { fill: var(--s-metal); }
 .sinoptico .cubierta-dientes { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
 .sinoptico .linea-suelo { stroke: var(--s-linea); stroke-width: 2; }
-.sinoptico .titulo-zona { font-size: 13px; font-weight: 650; fill: var(--suave); }
+.sinoptico .titulo-zona { font-size: 14px; font-weight: 650; fill: var(--suave); }
 
 /* Piezas comunes de los dibujos */
 .sv .m { fill: var(--s-metal-2); stroke: var(--s-metal); stroke-width: 1.5; }
@@ -37,9 +37,10 @@
 .sv .pieza.nok { fill: var(--nok); }
 .sv .vidrio { fill: color-mix(in srgb, var(--azul) 10%, var(--s-zona)); stroke: var(--s-metal); stroke-width: 1.5; }
 .sv .pantalla { fill: #1d2733; }
-.sv .txt-pant { font: 9px var(--mono); fill: #9fe3b9; }
-.sv .txt-pant.grande { font-size: 11px; font-weight: 700; }
-.sv .txt-mini { font: 9px var(--mono); fill: var(--suave); }
+.sv .txt-pant { font: 10px var(--mono); fill: #9fe3b9; }
+.sv .txt-pant.grande { font-size: 12.5px; font-weight: 700; }
+.sv .txt-mini { font: 10px var(--mono); fill: var(--suave); }
+.sv .txt-mini.estrecho { font-size: 9px; }
 .sv .barra-fondo { fill: color-mix(in srgb, var(--s-oscuro) 25%, transparent); }
 .sv .barra-ac { fill: var(--acento); }
 .sv .barra-ac.alerta, .sv .barra-ac.mal { fill: var(--nok); }
@@ -59,8 +60,8 @@
 .sinoptico .etiqueta-foco { outline: none; }
 .sinoptico .etiqueta-foco:focus-visible .nombre-eq { fill: var(--azul); text-decoration: underline; }
 .sinoptico .eq-enlace:focus { outline: none; }
-.sinoptico .nombre-eq { font-size: 12.5px; font-weight: 700; fill: var(--texto); }
-.sinoptico .clave-eq { font: 11px var(--mono); fill: var(--suave); }
+.sinoptico .nombre-eq { font-size: 14px; font-weight: 700; fill: var(--texto); }
+.sinoptico .clave-eq { font: 12.5px var(--mono); fill: var(--suave); }
 
 /* Estados: espera atenuado; microparada y avería, con halo que late */
 .eq-sin { transition: opacity .3s; }
@@ -128,7 +129,7 @@
 .sv .rodillo { fill: var(--s-metal); stroke: var(--s-oscuro); stroke-width: 1.5; }
 .sv .rechazo { fill: color-mix(in srgb, var(--nok) 25%, var(--s-zona)); stroke: var(--nok); stroke-width: 1.5; }
 .sv .caja-ok { fill: color-mix(in srgb, var(--ok) 20%, var(--s-zona)); stroke: var(--ok); stroke-width: 1.5; }
-.sv .cont-txt { font-weight: 700; fill: var(--texto); }
+.sv .cont-txt { font-size: 11.5px; font-weight: 700; fill: var(--texto); }
 
 /* Ventiladores y giros */
 .sv .ventilador { transform-box: fill-box; transform-origin: center; }
@@ -145,9 +146,14 @@
 .sv .fuga.activas { display: inline; }
 .sv .fuga path { stroke: var(--s-aire); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-dasharray: 5 5; animation: fuga .5s linear infinite; }
 @keyframes fuga { to { stroke-dashoffset: -10; } }
-.sinoptico .tuberia { fill: none; stroke: color-mix(in srgb, var(--s-aire) 30%, var(--s-metal-2)); stroke-width: 6; stroke-linejoin: round; }
-.sinoptico .tuberia.fluye { stroke: var(--s-aire); stroke-opacity: .65; stroke-dasharray: 10 8; animation: flujo 1.5s linear infinite; }
-.sinoptico .tuberia.con-fuga { stroke: var(--e-microparada); stroke-opacity: .9; }
+/* Tubería de aire comprimido: tubo metálico y, por dentro, el aire que fluye (si hay consumo) */
+.sinoptico .tuberia polyline { fill: none; stroke-linejoin: round; }
+.sinoptico .tubo-ext { stroke: var(--s-metal); stroke-width: 9; }
+.sinoptico .tubo-int { stroke: color-mix(in srgb, var(--s-aire) 14%, var(--s-zona)); stroke-width: 6; }
+.sinoptico .tubo-flujo { stroke: var(--s-aire); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 16; opacity: 0; }
+.sinoptico .tuberia.fluye .tubo-flujo { opacity: .9; animation: flujo var(--dur, 1.5s) linear infinite; }
+.sinoptico .tuberia.con-fuga .tubo-ext { stroke: var(--e-microparada); }
+.sinoptico .rotulo-tuberia { font-size: 12px; font-weight: 600; fill: var(--suave); }
 @keyframes flujo { to { stroke-dashoffset: -36; } }
 .sinoptico .cable-red { fill: none; stroke: var(--s-oscuro); stroke-width: 3; }
 
@@ -200,5 +206,5 @@
 /* Ficha */
 
 @media (prefers-reduced-motion: reduce) {
-  .sinoptico .tuberia.fluye, .sv .aire path, .sv .fuga path { stroke-dasharray: none; }
+  .sinoptico .tuberia.fluye .tubo-flujo, .sv .aire path, .sv .fuga path { stroke-dasharray: none; }
 }

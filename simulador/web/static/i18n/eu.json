@@ -214,6 +214,7 @@
   "cab.velocidad_ayuda": "Simulazioaren abiadura (×1 = denbora erreala)",
   "dest.nok_total": "NOK {nok} / {total} guztira",
   "portada.desliza": "Mugitu eskema alboetara lantegi osoa ikusteko.",
+  "portada.aire": "Aire konprimitua",
   "portada.de_la_orden": "aginduko {total} piezetatik {hechas}",
   "portada.paso1": "Karga: robot-01ek pieza gordina zintatik hartzen du eta CNCaren karga-paletan uzten du.",
   "portada.paso2": "Mekanizazioa: aurreko pieza amaitzean, paletak aldatzen dira; CNCak mekanizatzen du eta pieza zintara ateratzen da.",
